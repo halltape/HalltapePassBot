@@ -7,7 +7,7 @@ import sys
 
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('6241297991:AAGNcDf_teJPYv-B1qCqDXUtJi1ebUe1TT8')
+bot = telebot.TeleBot('Token')
 
 
 # Функция, обрабатывающая команду /start
