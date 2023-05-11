@@ -7,7 +7,7 @@ import sys
 
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('Token')
+bot = telebot.TeleBot('6241297991:AAGNcDf_teJPYv-B1qCqDXUtJi1ebUe1TT8')
 
 
 # Функция, обрабатывающая команду /start
@@ -26,12 +26,6 @@ def start(m, res=False):
                      '\n2️⃣ *CRAZY MODE*\n'
                      '\n*Для проверки своего пароля просто отправь его боту*\n',
                       reply_markup=markup, parse_mode='MarkdownV2')
-    
-    # #инлайновая клавиатура
-    # inMurkup = types.InlineKeyboardMarkup(row_width=1)
-    # inline_button = types.InlineKeyboardButton('Хочу надежный пароль', callback_data=strong_pass(False))
-    # inMurkup.add(inline_button)
-    # bot.send_message(m.chat.id, 'Выбери функицю', reply_markup=inMurkup)
 
 
 # Функция, обрабатывающая команду /help
@@ -53,51 +47,52 @@ def handle_text(message):
     else:
         get_pass(message)
 
+
 def get_pass(message: types.Message):   # Функция проверки пароля
-    # print(message.text)   # Ввод юзера
-    bit, time, unique, dict_answer = check_pass(message.text)
-    verdict, time_final = '', ''
-    period = period_result(time) # Функция, которая возвращает строку с числом и периодом времени
-    
-    if dict_answer['digit'] == False:
-        verdict += '⚠️ Нет цифр\n' # Попробовать вписать сюда Markdown mode
-    if dict_answer['lower'] == False:
-        verdict += '⚠️ Нет букв в нижнем регистре\n'
-    if dict_answer['upper'] == False:
-        verdict += '⚠️ Нет букв в верхнем регистре\n'
-    if dict_answer['special'] == False:
-        verdict += '⚠️ Нет специальных символов\n'
-    if dict_answer['length'] < 16:
-        verdict += '⚠️ Длина пароля меньше 16 символов\n'
-    if unique < 0.6:
-        verdict += '⚠️ Малая уникальность пароля\n'
-
-    if (time // 3600 // 24) < 7:
-        if time < 1: # Если время меньше 1 секунды, чтобы не писать мск
-            time_final = '\n⏳ Пароль взломают моментально\n'
-        else:
-            time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
-
-    bit_final = '\nСила пароля 'f'{bit} бит\nОптимальное значение от 97 и больше'
-
-    if verdict != '' and bit < 97:
-        verdict_final = '❌ Тебе нужно усилить твой пароль'f'{unique}!\n\n' + verdict + time_final + bit_final
-
-
-    if bit > 96 and unique > 0.6:
-        if period == True:
-            time_final = '\nСолнце быстрее погаснет, чем подберут твой пароль\n'
-        else:
-            time_final = '\nНа его взлом уйдет 'f'{time}\n'
-        verdict_final = '✅ У тебя хороший пароль!\n' + time_final + bit_final
-    else:
-        verdict_final = '❌ Тебе нужно усилить твой пароль'f'{unique}!\n\n' + verdict + time_final + bit_final
+    if len(message.text) <= 50:
+        bit, time, unique, dict_answer = check_pass(message.text)
+        verdict, time_final = '', ''
+        period = period_result(time) # Функция, которая возвращает строку с числом и периодом времени
         
+        if dict_answer['digit'] == False:
+            verdict += '⚠️ Нет цифр\n' # Попробовать вписать сюда Markdown mode
+        if dict_answer['lower'] == False:
+            verdict += '⚠️ Нет букв в нижнем регистре\n'
+        if dict_answer['upper'] == False:
+            verdict += '⚠️ Нет букв в верхнем регистре\n'
+        if dict_answer['special'] == False:
+            verdict += '⚠️ Нет специальных символов\n'
+        if dict_answer['length'] < 16:
+            verdict += '⚠️ Длина пароля меньше 16 символов\n'
+        if dict_answer['duplicates'][0] == True:
+            verdict += '⚠️ Больше трех чисел друг за другом\n'
+        if dict_answer['duplicates'][1] == True:
+            verdict += '⚠️ Повторяющиеся символы\n'
+        if unique < 0.6:
+            verdict += '⚠️ Малая уникальность пароля\n'
+
+        if (time // 3600 // 24) < 7:
+            if time < 1: # Если время меньше 1 секунды, чтобы не писать мск
+                time_final = '\n⏳ Пароль взломают моментально\n'
+            else:
+                time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
+
+        bit_final = '\nСила пароля 'f'{bit} бит\nОптимальное значение от 97 и больше'
+
+        if verdict != '' and bit < 97:
+            verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' + verdict + time_final + bit_final
 
 
-    # elif bit > 94 and len(message.text) >= 50:
-    #     verdict = 'ℹ Пароль надежный, но смысла в такой длине нет\n'
-
+        if bit > 96 and unique > 0.6 and dict_answer['duplicates'][0] == False and dict_answer['duplicates'][1] == False:
+            if period == True:
+                time_final = '\nСолнце быстрее погаснет, чем подберут твой пароль\n'
+            else:
+                time_final = '\nНа его взлом уйдет 'f'{time}\n'
+            verdict_final = '✅ У тебя хороший пароль!\n' + time_final + bit_final
+        else:
+            verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' + verdict + time_final + bit_final
+    else:
+        verdict_final = 'ℹ Пароль слишком длинный, в этом нет смысла'
 
     bot.send_message(message.chat.id, verdict_final)
     if verdict_final[0] == '❌':
@@ -106,12 +101,6 @@ def get_pass(message: types.Message):   # Функция проверки пар
         inline_button = types.InlineKeyboardButton('Усилить', callback_data=message.text)
         inMurkup.add(inline_button)
         bot.send_message(message.chat.id, 'Ты можешь усилить свой пароль', reply_markup=inMurkup)
-    elif verdict_final[0] == 'ℹ':
-        #инлайновая клавиатура
-        inMurkup = types.InlineKeyboardMarkup(row_width=1)
-        inline_button = types.InlineKeyboardButton('Оптимизировать', callback_data=message.text)
-        inMurkup.add(inline_button)
-        bot.send_message(message.chat.id, 'Ты можешь оптимизировать свой пароль', reply_markup=inMurkup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
@@ -124,8 +113,10 @@ def callback_inline(call):
 
 
 def check_pass(password):
-    total = 0
-    dictionary = {'digit':False, 'lower':False, 'upper':False, 'special':False, 'length':len(password)} 
+    total, count, summ = 0, 0, 0
+    dictionary = {'digit':False, 'lower':False,
+                  'upper':False, 'special':False, 
+                  'length':len(password), 'duplicates':[False, False]} 
     if any(c.isdigit() for c in password):
         total += 10
         dictionary['digit'] = True
@@ -138,6 +129,22 @@ def check_pass(password):
     if any(c for c in password if c in ('":,.;^*!@#$%&*()><}{[]?')):
         total += 22
         dictionary['special'] = True
+
+    for c in password:
+        if c in ('1234567890'):
+            count += 1
+            if count > 3:
+                dictionary['duplicates'][0] = True
+        else:
+            count = 0
+
+    for i in range(1, len(password)):
+        if password[i] == password[i - 1]:
+            summ += 1
+            if summ > 2:
+                dictionary['duplicates'][1] = True
+        else:
+            summ = 0
 
     entropy = round(math.log2(total**len(password)))  # Энтропия
     
@@ -281,6 +288,7 @@ def period_result(period):
             word += dict_ends['century'][2]
     result = str(f'{period:,}') + ' ' + word
     return result
+
 
 # Запускаем бота
 bot.polling(none_stop=True, interval=0)
