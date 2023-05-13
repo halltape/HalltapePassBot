@@ -4,10 +4,11 @@ from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup, InlineKeybo
 import random
 import math
 import sys
+import string
 
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('Token')
+bot = telebot.TeleBot('6241297991:AAGNcDf_teJPYv-B1qCqDXUtJi1ebUe1TT8')
 
 
 # Функция, обрабатывающая команду /start
@@ -16,20 +17,22 @@ bot = telebot.TeleBot('Token')
 def start(m, res=False):
     markup=types.ReplyKeyboardMarkup(resize_keyboard=True)
     button1=types.KeyboardButton('Получить надежный пароль')
-    button2=types.KeyboardButton('CRAZY MODE')
+    button2=types.KeyboardButton('Тотальный контроль')
     markup.add(button1)
     markup.add(button2)
     bot.send_message(m.chat.id,
-                     '*Нажми нужную кнопку\!*\n\n'
+                     '*🔐 Проверь свой пароль на надежность, просто отправь его боту в виде сообщения*\n\n'
+                     'Либо можешь получить уже готовый\!\n\n'
                      '1️⃣ Получить надежный пароль \(*18 символов*\)\n'
                      'Можешь нажимать бесконечное кол\-во раз\n'
-                     '\n2️⃣ *CRAZY MODE*\n'
-                     '\n*Для проверки своего пароля просто отправь его боту*\n',
-                      reply_markup=markup, parse_mode='MarkdownV2')
+                     '\n2️⃣ Тотальный контроль \(*95 уникальных символов*\)\n'
+                     '\n\nФункция *Усилить пароль* находится в разработке',
+                     reply_markup=markup, parse_mode='MarkdownV2')
 
 
 # Функция, обрабатывающая команду /help
 @bot.message_handler(commands=["help"])
+
 def help(m, res=False):
     bot.send_message(m.chat.id, 'По всем вопросам работы бота писать *@halltape*\n', parse_mode='MarkdownV2')
 
@@ -38,7 +41,7 @@ def help(m, res=False):
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
         
-    if message.text.strip() == 'CRAZY MODE':
+    if message.text.strip() == 'Тотальный контроль':
         answer = strong_pass(True)
         bot.send_message(message.chat.id, answer)
     elif message.text.strip() == 'Получить надежный пароль':
@@ -120,14 +123,14 @@ def check_pass(password):
     if any(c.isdigit() for c in password):
         total += 10
         dictionary['digit'] = True
-    if any(c.isalpha() for c in password):
+    if any(c in string.ascii_lowercase for c in password):
         total += 26
         dictionary['lower'] = True
-    if any(c.isalpha() for c in password if c == c.upper()):
+    if any(c in string.ascii_uppercase for c in password):
         total += 26
         dictionary['upper'] = True
-    if any(c for c in password if c in ('":,.;^*!@#$%&*()><}{[]?')):
-        total += 22
+    if any(c in string.punctuation for c in password):
+        total += 33
         dictionary['special'] = True
 
     for c in password:
@@ -150,60 +153,58 @@ def check_pass(password):
     
     if sys.float_info.max > total**len(password):
         time_seconds = (round(total**len(password) / 3900000000)) # Время подбора в секундах
-    else:
-        time_seconds = math.inf
     
     metric_unique = len(set(password)) / len(password)
 
     return entropy, time_seconds, metric_unique, dictionary
 
 
-def question_input(custom):
-    # Опрос пользователя по сложности пароля
-    if custom == False:
-        qa_list = ['1', '1', '1', '0', '1'] # Включен режим максимльной надежности
-        return qa_list
-    # else:
-    #     qa_list = ['0', '0', '0', '0', '0']
-    # return steps(qa_list)
-
-
-def generate_password(lst):
-    # По полученному опроснику генерируем sample
+def generate_password(dict):
+    # По полученному словарю генерируем sample
     # пароля из максимум 4 элементов и пишем в строку
     sample_password = ''
-    if lst[0] == '1':
-        sample_password += random.choice('0123456789')
-    if lst[1] == '1':
-        sample_password += random.choice('ABCDEFGHIJKLMNOPQRSTUVWXYZ')
-    if lst[2] == '1':
-        sample_password += random.choice('abcdefghijklmnopqrstuvwxyz')
-    if lst[3] == '1':
-        sample_password += random.choice('!@#$%&*()><}{[]?')
-    if lst[4] == '1':
+    if dict['digit'] == True:
+        sample_password += random.choice(string.digits)
+    if dict['lower'] == True:
+        sample_password += random.choice(string.ascii_lowercase)
+    if dict['upper'] == True:
+        sample_password += random.choice(string.ascii_uppercase)
+    if dict['special'] == True:
+        sample_password += random.choice(string.punctuation)
+    if dict['replace'] == True:
         sample_password = sample_password.replace('i', 'F').replace('l', 'g') \
             .replace('1', 'p').replace('L', '7').replace('o', 't') \
             .replace('0', '2').replace('O', 'z')
     return sample_password
 
 
-def final_pass(answ_list, length): # Собираем финальный пароль из сэмплов (каждый из 4 элементов)
-    final_password = '' # Создаем пустую строку для будущего сэмпла
-    while len(final_password) <= length: # Собираем пароль, пока длина не превысит нужную
-        for _ in range(math.ceil(length / 4)): # Если длина будет n, то сэмпл соберается длиной n + 1
-            final_password += generate_password(answ_list) # Конкатенация строк сэмплов пароля
-    final_password = final_password[:length]
-    final_password = ''.join(random.sample(final_password, len(final_password))) # Перемешиваем пароль
-    return final_password[:length]
+def final_pass(answ_dict, length): # Собираем финальный пароль из сэмплов (каждый из 4 элементов)
+    build_password = '' # Создаем пустую строку для будущего сэмпла
+    if length == 95:
+        
+        build_password = string.digits + string.ascii_lowercase + string.ascii_uppercase + string.punctuation
+        final_password = list(build_password[:95]) # Обрезаем пароль до нужной длины
+        random.shuffle(final_password) # Перемешиваем пароль
+        final_password = ''.join(final_password) # Склеиваем обратно в строку
+    else:
+        while len(build_password) <= length: # Собираем пароль, пока длина не превысит нужную
+            for _ in range(math.ceil(length / 4)): # Если длина будет n, то сэмпл соберается длиной n + 1
+                build_password += generate_password(answ_dict) # Конкатенация строк сэмплов пароля
+        final_password = list(build_password[:length]) # Обрезаем пароль до нужной длины
+        random.shuffle(final_password) # Перемешиваем пароль
+        final_password = ''.join(final_password) # Склеиваем обратно в строку
+    return final_password
+    
 
 
 def strong_pass(button):
     if button == True:
-        pass_length = 1000
+        pass_length = 95
+        answer_dict = {'digit':True, 'lower':True,'upper':True, 'special':True, 'replace':False} 
     else:
         pass_length = 18
-    answer_list = question_input(False)
-    password = final_pass(answer_list, pass_length)
+        answer_dict = {'digit':True, 'lower':True,'upper':True, 'special':False, 'replace':True} 
+    password = final_pass(answer_dict, pass_length)
     return password
 
 
