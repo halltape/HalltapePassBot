@@ -196,7 +196,6 @@ def final_pass(answ_dict, length): # Собираем финальный пар�
     return final_password
     
 
-
 def strong_pass(button):
     if button == True:
         pass_length = 95
