@@ -90,8 +90,8 @@ def get_pass(message: types.Message):   # Функция проверки пар
         if bit > 96 and unique > 0.6 and dict_answer['duplicates'][0] is False\
                 and dict_answer['duplicates'][1] is False:
             if period is True:
-                time_final = '\nСолнце быстрее погаснет,\
-                чем подберут твой пароль\n'
+                time_final = '\nСолнце быстрее погаснет, '\
+                'чем подберут твой пароль\n'
             else:
                 time_final = '\nНа его взлом уйдет 'f'{time}\n'
             verdict_final = '✅ У тебя хороший пароль!\n' \
