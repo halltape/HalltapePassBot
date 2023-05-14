@@ -90,13 +90,15 @@ def get_pass(message: types.Message):   # Функция проверки пар
         if bit > 96 and unique > 0.6 and dict_answer['duplicates'][0] is False\
                 and dict_answer['duplicates'][1] is False:
             if period is True:
-                time_final = '\nСолнце быстрее погаснет, '\
-                'чем подберут твой пароль\n'
+                time_final = '\nСолнце уже потухнет, '\
+                    'а твой пароль все еще будут подбирать\n'
             else:
                 time_final = '\nНа его взлом уйдет 'f'{time}\n'
             verdict_final = '✅ У тебя хороший пароль!\n' \
                 + time_final + bit_final
         else:
+            if bit > 96:
+                bit_final = ''
             verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
                 + verdict + time_final + bit_final
     else:
@@ -222,12 +224,14 @@ def strong_pass(button):
 
 def period_result(period):
     dict_period = {'seconds': 'секунд',
+                   'minutes': 'минут',
                    'hours': 'час',
                    'days': 'д',
                    'years': '',
                    'century': 'век'}
 
     dict_ends = {'seconds': ['', 'а', 'ы'],
+                 'minutes': ['', 'а', 'ы'],
                  'hours': ['ов', '', 'а'],
                  'days': ['ней', 'ень', 'ня'],
                  'years': ['лет', 'год', 'года'],
@@ -236,11 +240,14 @@ def period_result(period):
     if period // 3600 // 24 // 365 // 100 > 60000000:
         result = True
         return result
-    if period < 3600:
+    if period < 60:
         word = dict_period['seconds']
+    elif 60 <= period < 3600:
+        word = dict_period['minutes']
+        period = period // 60  # Количество часов
     elif 3600 <= period < (24 * 3600):
         word = dict_period['hours']
-        period = period // 3600  # Количество секунд
+        period = period // 3600  # Количество часов
     elif 24 * 3600 <= period < (24 * 3600) * 365:
         word = dict_period['days']
         period = period // 3600 // 24  # количество дней
@@ -254,6 +261,9 @@ def period_result(period):
     if int(period) % 10 in (0, 5, 6, 7, 8, 9) or int(period) in range(11, 20):
         if word == dict_period['seconds']:
             word += dict_ends['seconds'][0]
+
+        if word == dict_period['minutes']:
+            word += dict_ends['minutes'][0]
 
         if word == dict_period['hours']:
             word += dict_ends['hours'][0]
@@ -271,6 +281,9 @@ def period_result(period):
         if word == dict_period['seconds']:
             word += dict_ends['seconds'][1]
 
+        if word == dict_period['minutes']:
+            word += dict_ends['minutes'][1]
+
         if word == dict_period['hours']:
             word += dict_ends['hours'][1]
 
@@ -286,6 +299,9 @@ def period_result(period):
     elif int(period) % 10 in (2, 3, 4):  # 4
         if word == dict_period['seconds']:
             word += dict_ends['seconds'][2]
+
+        if word == dict_period['minutes']:
+            word += dict_ends['minutes'][2]
 
         if word == dict_period['hours']:
             word += dict_ends['hours'][2]
