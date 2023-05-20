@@ -6,6 +6,7 @@ import random
 import math
 import sys
 import string
+from functools import reduce
 
 
 # Создаем экземпляр бота
@@ -21,26 +22,31 @@ def start(m, res=False):
     button2 = types.KeyboardButton('Тотальный контроль')
     markup.add(button1)
     markup.add(button2)
-    bot.send_message(m.chat.id, '*🔐 Проверь свой пароль на надежность,'
+    bot.send_message(m.chat.id, '\n\n*🔐 Проверь свой пароль на надежность, '
                      'просто отправь его боту в виде сообщения*\n\n'
-                     'Либо можешь получить уже готовый\!\n\n'
+                     '💪🏻 Также бот может предложить усилить твой пароль\n\n'
+                     '*Либо можешь сгенерировать уже готовый\!*\n\n'
                      '1️⃣ Получить надежный пароль \(*18 символов*\)\n'
                      'Можешь нажимать бесконечное кол\-во раз\n'
-                     '\n2️⃣ Тотальный контроль \(*95 уникальных символов*\)\n'
-                     '\n\n🚧 Функция *Усилить пароль* находится в разработке',
+                     '\n2️⃣ Тотальный контроль \(*95 уникальных символов*\)\n',
                      reply_markup=markup, parse_mode='MarkdownV2')
 
 
 # Функция, обрабатывающая команду /help
 @bot.message_handler(commands=["help"])
 def help(m, res=False):
-    bot.send_message(m.chat.id, 'По всем вопросам работы бота'
+    bot.send_message(m.chat.id, 'По всем вопросам работы бота '
                      'писать *@halltape*\n', parse_mode='MarkdownV2')
 
 
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
+
+    flag = True
+    check_string = string.ascii_lowercase + string.ascii_uppercase + \
+        string.punctuation + string.digits
+
     if message.text.strip() == 'Тотальный контроль':
         answer = strong_pass(True)
         bot.send_message(message.chat.id, answer)
@@ -49,7 +55,20 @@ def handle_text(message):
         bot.send_message(message.chat.id, '*'f'{answer}*',
                          parse_mode='MarkdownV2')
     else:
-        get_pass(message)
+        for char in message.text.strip():
+            if char not in (check_string):
+                flag = False
+        if flag:
+            get_pass(message)
+        else:
+            bot.send_message(message.chat.id,
+                             '❌ *Недопустимые символы*\n'
+                             'Проверьте вводимый текст\n\n'
+                             '\- Есть пробелы\n'
+                             '\- Перепутана русская *A* и латинская\n'
+                             '\- Есть нестандартные символы\n\n'
+                             '*P\.S\. Бот различает русский и латинский алфавит*',
+                             parse_mode='MarkdownV2')
 
 
 def get_pass(message: types.Message):   # Функция проверки пароля
@@ -69,13 +88,13 @@ def get_pass(message: types.Message):   # Функция проверки пар
         if dict_answer['length'] < 16:
             verdict += '⚠️ Длина пароля меньше 16 символов\n'
         if dict_answer['duplicates'][0] is True:
-            verdict += '⚠️ Больше трех чисел друг за другом\n'
+            verdict += '⚠️ Больше четырех чисел друг за другом\n'
         if dict_answer['duplicates'][1] is True:
             verdict += '⚠️ Повторяющиеся символы\n'
         if unique < 0.6:
             verdict += '⚠️ Малая уникальность пароля\n'
 
-        if (time // 3600 // 24) < 7:
+        if (time // 3600 // 24) < 183:
             if time < 1:  # Если время меньше 1 секунды, чтобы не писать мск
                 time_final = '\n⏳ Пароль взломают моментально\n'
             else:
@@ -83,14 +102,24 @@ def get_pass(message: types.Message):   # Функция проверки пар
 
         bit_final = '\nСила пароля 'f'{bit} бит\nОптимальное значение' \
             'от 97 и больше'
-
         if verdict != '' and bit < 97:
-            verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
-                + verdict + time_final + bit_final
+            if dict_answer['length'] < 16 \
+                    and (time // 3600 // 24 // 365) > 1 and unique > 0.5:
+                verdict_final = 'ℹ Пароль надежный,' \
+                    ' но обрати внимание на комментарии ниже'
+                if period is True:
+                    time_final = '\n⏳ Солнце уже потухнет, '\
+                        'а твой пароль все еще будут подбирать\n'
+                else:
+                    time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
+                verdict_final += '\n\n' + verdict + time_final + bit_final
+            else:
+                verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
+                    + verdict + time_final + bit_final
         if bit > 96 and unique > 0.6 and dict_answer['duplicates'][0] is False\
                 and dict_answer['duplicates'][1] is False:
             if period is True:
-                time_final = '\nСолнце уже потухнет, '\
+                time_final = '\n⏳ Солнце уже потухнет, '\
                     'а твой пароль все еще будут подбирать\n'
             else:
                 time_final = '\nНа его взлом уйдет 'f'{time}\n'
@@ -99,29 +128,90 @@ def get_pass(message: types.Message):   # Функция проверки пар
         else:
             if bit > 96:
                 bit_final = ''
-            verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
-                + verdict + time_final + bit_final
+                verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
+                    + verdict + time_final + bit_final
     else:
-        verdict_final = 'ℹ Пароль слишком длинный, в этом нет смысла'
+        verdict_final = '♾ Пароль слишком длинный, в этом нет смысла'
 
     bot.send_message(message.chat.id, verdict_final)
     if verdict_final[0] == '❌':
         # инлайновая клавиатура
         inMurkup = types.InlineKeyboardMarkup(row_width=1)
-        inline_button = types.InlineKeyboardButton('Усилить',
-                                                   callback_data=message.text)
-        inMurkup.add(inline_button)
+        inline_button1 = types.InlineKeyboardButton('Максимальная ' \
+                                                    'защита (Рекомендуется)', callback_data='1' + "|" + message.text)
+        inline_button2 = types.InlineKeyboardButton('Немного усложнить',
+                                                   callback_data='2' + "|" + message.text)
+        inMurkup.add(inline_button1)
+        inMurkup.add(inline_button2)
+        bot.send_message(message.chat.id, 'Ты можешь усилить свой пароль',
+                         reply_markup=inMurkup)
+
+    if verdict_final[0] == 'ℹ':
+        # инлайновая клавиатура
+        inMurkup = types.InlineKeyboardMarkup(row_width=1)
+        inline_button3 = types.InlineKeyboardButton('Немного усложнить',
+                                                   callback_data='3' + "|" + message.text)
+        inMurkup.add(inline_button3)
         bot.send_message(message.chat.id, 'Ты можешь усилить свой пароль',
                          reply_markup=inMurkup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    if call.message:
-        bot.send_message(call.message.chat.id, f'{call.data}')
-    elif call.message == 'strong':
-        bot.send_message(call.message.chat.id, strong_pass(False))
+    import string
+    check_string = string.ascii_lowercase + string.ascii_uppercase + string.punctuation + string.digits
+    call_back_pass = call.data[2:]
+    if call.data[0] == '1':  # Максимальное усложнение
+        # Из множества в строку
+        s = ''.join(set(call_back_pass))
+        corrected_pass = s + strong_pass(False)
+
+        # shuffle corrected_pass
+        corrected_pass = ''.join(random.sample(corrected_pass,
+                                               len(corrected_pass)))
+        digits, letters = check_corrected_pass(corrected_pass)
+        unique = len(set(corrected_pass)) / len(corrected_pass)
+
+        # Пока измененный пароль не будет содержать дубликатов и цифр
+        while digits is not False and letters is not False:
+            corrected_pass = s + strong_pass(False)
+            corrected_pass = ''.join(random.sample(corrected_pass,
+                                                   len(corrected_pass)))
+            digits, letters = check_corrected_pass(corrected_pass)
+            unique = len(set(corrected_pass)) / len(corrected_pass)
+
+        bot.send_message(call.message.chat.id, f'{corrected_pass[:18]}')
+    elif call.data[0] in ('2', '3'):
+        bit, time, unique, dict_answer = check_pass(call_back_pass)
+        while (len(call_back_pass) <= len(call.data[2:])):
+            if dict_answer['duplicates'][1] is True:
+                call_back_pass = delete_most_popular(call_back_pass, check_string)
+            if dict_answer['digit'] is False:
+                call_back_pass += random.choice(string.digits)
+            if dict_answer['lower'] is False:
+                call_back_pass += random.choice(string.ascii_lowercase)
+            if dict_answer['upper'] is False:
+                call_back_pass += random.choice(string.ascii_uppercase)
+            if dict_answer['special'] is False:
+                call_back_pass += random.choice('!#$%&()*+-:;=>?@_')
+            if call_back_pass == call.data[2:]:
+                dict = {'digit': True, 'lower': True, 'upper': True,
+                        'special': True, 'replace': False}
+                call_back_pass += generate_password(dict)
+                break
+        # shuffle corrected_pass
+        call_back_pass = ''.join(random.sample(call_back_pass,
+                                               len(call_back_pass)))
+        bot.send_message(call.message.chat.id, call_back_pass)
     return 0
+
+
+# Function that delete the most popular symbol in the string
+def delete_most_popular(string, check_string):
+    most_popular = max(string, key=string.count)
+    string = string.replace(most_popular, '')
+    string += random.choice(check_string)
+    return string
 
 
 def check_pass(password):
@@ -142,14 +232,16 @@ def check_pass(password):
         total += 33
         dictionary['special'] = True
 
+# Функция считает количество подряд идущих цифр
     for c in password:
         if c in ('1234567890'):
             count += 1
-            if count > 3:
+            if count > 4:
                 dictionary['duplicates'][0] = True
         else:
             count = 0
 
+#  Функция считает количество подряд идущих символов
     for i in range(1, len(password)):
         if password[i] == password[i - 1]:
             summ += 1
@@ -166,7 +258,29 @@ def check_pass(password):
     return entropy, time_seconds, metric_unique, dictionary
 
 
-def generate_password(dict):
+def check_corrected_pass(correct_pass) -> tuple[bool, bool]:
+    count, summ, duplicates_digits, duplicates_letters = 0, 0, False, False
+    # Функция считает количество подряд идущих цифр
+    for c in correct_pass:
+        if c in ('1234567890'):
+            count += 1
+            if count > 4:
+                duplicates_digits = True
+        else:
+            count = 0
+
+#  Функция считает количество подряд идущих символов
+    for i in range(1, len(correct_pass)):
+        if correct_pass[i] == correct_pass[i - 1]:
+            summ += 1
+            if summ > 2:
+                duplicates_letters = True
+        else:
+            summ = 0
+    return duplicates_digits, duplicates_letters
+
+
+def generate_password(dict) -> str:
     # По полученному словарю генерируем sample
     # пароля из максимум 4 элементов и пишем в строку
     sample_password = ''
@@ -185,7 +299,7 @@ def generate_password(dict):
     return sample_password
 
 
-def final_pass(answ_dict, length):
+def final_pass(answ_dict, length) -> str:
     # Собираем финальный пароль из сэмплов (каждый из 4 элементов)
     build_password = ''  # Создаем пустую строку для будущего сэмпла
     if length == 95:
@@ -219,6 +333,9 @@ def strong_pass(button):
         answer_dict = {'digit': True, 'lower': True, 'upper': True,
                        'special': False, 'replace': True}
     password = final_pass(answer_dict, pass_length)
+    digits, letters = check_corrected_pass(password)
+    while digits is not False and letters is not False:
+        password = final_pass(answer_dict, pass_length)
     return password
 
 
