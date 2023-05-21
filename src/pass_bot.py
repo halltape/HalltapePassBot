@@ -1,13 +1,10 @@
-import telebot
-from telebot import types
-from telebot.types import ReplyKeyboardMarkup, InlineKeyboardMarkup
-from telebot.types import InlineKeyboardButton
-import random
-import math
-import sys
-import string
-from functools import reduce
-
+from library import *
+from func_pass import strong_pass
+from period_time import period_result
+from check_pass import check_pass, delete_most_popular
+from func_pass import generate_password, check_corrected_pass
+from func_pass import beautiful_password_first, beautiful_password_second
+from func_pass import social_password
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot('TOKEN')
@@ -18,17 +15,28 @@ bot = telebot.TeleBot('TOKEN')
 # Добавляем две кнопки
 def start(m, res=False):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    button1 = types.KeyboardButton('Получить надежный пароль')
-    button2 = types.KeyboardButton('Тотальный контроль')
-    markup.add(button1)
-    markup.add(button2)
-    bot.send_message(m.chat.id, '\n\n*🔐 Проверь свой пароль на надежность, '
-                     'просто отправь его боту в виде сообщения*\n\n'
-                     '💪🏻 Также бот может предложить усилить твой пароль\n\n'
+    markup.row('Красивый пароль (I вариант)')
+    markup.row('Красивый пароль (II вариант)')
+    markup.row('Пароль для соц сетей')
+    markup.row('Обычный пароль')
+    bot.send_message(m.chat.id, '\n\n*🔐 Проверь и усложни свой пароль\\!\n'
+                     'Отправь его боту в виде сообщения*\n\n'
                      '*Либо можешь сгенерировать уже готовый\!*\n\n'
-                     '1️⃣ Получить надежный пароль \(*18 символов*\)\n'
-                     'Можешь нажимать бесконечное кол\-во раз\n'
-                     '\n2️⃣ Тотальный контроль \(*95 уникальных символов*\)\n',
+                     '1️⃣ Красивый пароль\n'
+                     '\n2️⃣ Пароль для соц сетей\n'
+                     '\n3️⃣ Обычный пароль',
+                     reply_markup=markup, parse_mode='MarkdownV2')
+
+
+# Функция, обрабатывающая команду /start
+@bot.message_handler(commands=["social"])
+# Добавляем две кнопки
+def social(m, res=True):
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup.row('Google', 'Yandex', 'Vk', 'Mail')
+    markup.row('Facebook', 'Avito', 'Instagram')
+    markup.row('Gosuslugi', 'Универсальный')
+    bot.send_message(m.chat.id, '*Выбери* к чему тебе нужно придумать пароль',
                      reply_markup=markup, parse_mode='MarkdownV2')
 
 
@@ -47,10 +55,24 @@ def handle_text(message):
     check_string = string.ascii_lowercase + string.ascii_uppercase + \
         string.punctuation + string.digits
 
-    if message.text.strip() == 'Тотальный контроль':
-        answer = strong_pass(True)
-        bot.send_message(message.chat.id, answer)
-    elif message.text.strip() == 'Получить надежный пароль':
+    if message.text.strip() == 'Красивый пароль (I вариант)':
+        bot.send_message(message.chat.id,
+                         f'{beautiful_password_first()}',)
+    elif message.text.strip() == 'Красивый пароль (II вариант)':
+        bot.send_message(message.chat.id,
+                         f'{beautiful_password_second()}',)
+    elif message.text.strip() == 'Пароль для соц сетей':
+        bot.send_message(message.chat.id, 'Выскакивает картинка, куда нажать для команды')
+
+    elif message.text.strip() in ('Google', 'Yandex', 'Vk', 'Mail',
+                                  'Facebook', 'Avito', 'Instagram',
+                                  'Gosuslugi'):
+        bot.send_message(message.chat.id, social_password(message.text.lower()))
+
+    elif message.text.strip() == 'Универсальный':
+        bot.send_message(message.chat.id, social_password('*****'))
+
+    elif message.text.strip() == 'Обычный пароль':
         answer = strong_pass(False)
         bot.send_message(message.chat.id, '*'f'{answer}*',
                          parse_mode='MarkdownV2')
@@ -69,6 +91,7 @@ def handle_text(message):
                              '\- Есть нестандартные символы\n\n'
                              '*P\.S\. Бот различает русский и латинский алфавит*',
                              parse_mode='MarkdownV2')
+    return 0
 
 
 def get_pass(message: types.Message):   # Функция проверки пароля
@@ -100,8 +123,7 @@ def get_pass(message: types.Message):   # Функция проверки пар
             else:
                 time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
 
-        bit_final = '\nСила пароля 'f'{bit} бит\nОптимальное значение' \
-            'от 97 и больше'
+        bit_final = '\nНадежность пароля 'f'{round(bit / 97 * 100)} %'
         if verdict != '' and bit < 97:
             if dict_answer['length'] < 16 \
                     and (time // 3600 // 24 // 365) > 1 and unique > 0.5:
@@ -185,7 +207,8 @@ def callback_inline(call):
         bit, time, unique, dict_answer = check_pass(call_back_pass)
         while (len(call_back_pass) <= len(call.data[2:])):
             if dict_answer['duplicates'][1] is True:
-                call_back_pass = delete_most_popular(call_back_pass, check_string)
+                call_back_pass = delete_most_popular(call_back_pass,
+                                                     check_string)
             if dict_answer['digit'] is False:
                 call_back_pass += random.choice(string.digits)
             if dict_answer['lower'] is False:
@@ -204,235 +227,6 @@ def callback_inline(call):
                                                len(call_back_pass)))
         bot.send_message(call.message.chat.id, call_back_pass)
     return 0
-
-
-# Function that delete the most popular symbol in the string
-def delete_most_popular(string, check_string):
-    most_popular = max(string, key=string.count)
-    string = string.replace(most_popular, '')
-    string += random.choice(check_string)
-    return string
-
-
-def check_pass(password):
-    total, count, summ = 0, 0, 0
-    dictionary = {'digit': False, 'lower': False,
-                  'upper': False, 'special': False,
-                  'length': len(password), 'duplicates': [False, False]}
-    if any(c.isdigit() for c in password):
-        total += 10
-        dictionary['digit'] = True
-    if any(c in string.ascii_lowercase for c in password):
-        total += 26
-        dictionary['lower'] = True
-    if any(c in string.ascii_uppercase for c in password):
-        total += 26
-        dictionary['upper'] = True
-    if any(c in string.punctuation for c in password):
-        total += 33
-        dictionary['special'] = True
-
-# Функция считает количество подряд идущих цифр
-    for c in password:
-        if c in ('1234567890'):
-            count += 1
-            if count > 4:
-                dictionary['duplicates'][0] = True
-        else:
-            count = 0
-
-#  Функция считает количество подряд идущих символов
-    for i in range(1, len(password)):
-        if password[i] == password[i - 1]:
-            summ += 1
-            if summ > 2:
-                dictionary['duplicates'][1] = True
-        else:
-            summ = 0
-
-    entropy = round(math.log2(total**len(password)))  # Энтропия
-    if sys.float_info.max > total**len(password):
-        # Время подбора в секундах
-        time_seconds = (round(total**len(password) / 3900000000))
-    metric_unique = len(set(password)) / len(password)
-    return entropy, time_seconds, metric_unique, dictionary
-
-
-def check_corrected_pass(correct_pass) -> tuple[bool, bool]:
-    count, summ, duplicates_digits, duplicates_letters = 0, 0, False, False
-    # Функция считает количество подряд идущих цифр
-    for c in correct_pass:
-        if c in ('1234567890'):
-            count += 1
-            if count > 4:
-                duplicates_digits = True
-        else:
-            count = 0
-
-#  Функция считает количество подряд идущих символов
-    for i in range(1, len(correct_pass)):
-        if correct_pass[i] == correct_pass[i - 1]:
-            summ += 1
-            if summ > 2:
-                duplicates_letters = True
-        else:
-            summ = 0
-    return duplicates_digits, duplicates_letters
-
-
-def generate_password(dict) -> str:
-    # По полученному словарю генерируем sample
-    # пароля из максимум 4 элементов и пишем в строку
-    sample_password = ''
-    if dict['digit'] is True:
-        sample_password += random.choice(string.digits)
-    if dict['lower'] is True:
-        sample_password += random.choice(string.ascii_lowercase)
-    if dict['upper'] is True:
-        sample_password += random.choice(string.ascii_uppercase)
-    if dict['special'] is True:
-        sample_password += random.choice(string.punctuation)
-    if dict['replace'] is True:
-        sample_password = sample_password.replace('i', 'F').replace('l', 'g') \
-            .replace('1', 'p').replace('L', '7').replace('o', 't') \
-            .replace('0', '2').replace('O', 'z')
-    return sample_password
-
-
-def final_pass(answ_dict, length) -> str:
-    # Собираем финальный пароль из сэмплов (каждый из 4 элементов)
-    build_password = ''  # Создаем пустую строку для будущего сэмпла
-    if length == 95:
-        build_password = string.digits + string.ascii_lowercase + \
-            string.ascii_uppercase + string.punctuation
-        # Обрезаем пароль до нужной длины
-        final_password = list(build_password[:95])
-        random.shuffle(final_password)  # Перемешиваем пароль
-        final_password = ''.join(final_password)  # Склеиваем обратно в строку
-    else:
-        # Собираем пароль, пока длина не превысит нужную
-        while len(build_password) <= length:
-            # Если длина будет n, то сэмпл соберается длиной n + 1
-            for _ in range(math.ceil(length / 4)):
-                # Конкатенация строк сэмплов пароля
-                build_password += generate_password(answ_dict)
-        # Обрезаем пароль до нужной длины
-        final_password = list(build_password[:length])
-        random.shuffle(final_password)  # Перемешиваем пароль
-        final_password = ''.join(final_password)  # Склеиваем обратно в строку
-    return final_password
-
-
-def strong_pass(button):
-    if button is True:
-        pass_length = 95
-        answer_dict = {'digit': True, 'lower': True, 'upper': True,
-                       'special': True, 'replace': False}
-    else:
-        pass_length = 18
-        answer_dict = {'digit': True, 'lower': True, 'upper': True,
-                       'special': False, 'replace': True}
-    password = final_pass(answer_dict, pass_length)
-    digits, letters = check_corrected_pass(password)
-    while digits is not False and letters is not False:
-        password = final_pass(answer_dict, pass_length)
-    return password
-
-
-def period_result(period):
-    dict_period = {'seconds': 'секунд',
-                   'minutes': 'минут',
-                   'hours': 'час',
-                   'days': 'д',
-                   'years': '',
-                   'century': 'век'}
-
-    dict_ends = {'seconds': ['', 'а', 'ы'],
-                 'minutes': ['', 'а', 'ы'],
-                 'hours': ['ов', '', 'а'],
-                 'days': ['ней', 'ень', 'ня'],
-                 'years': ['лет', 'год', 'года'],
-                 'century': ['ов', '', 'а']}
-
-    if period // 3600 // 24 // 365 // 100 > 60000000:
-        result = True
-        return result
-    if period < 60:
-        word = dict_period['seconds']
-    elif 60 <= period < 3600:
-        word = dict_period['minutes']
-        period = period // 60  # Количество часов
-    elif 3600 <= period < (24 * 3600):
-        word = dict_period['hours']
-        period = period // 3600  # Количество часов
-    elif 24 * 3600 <= period < (24 * 3600) * 365:
-        word = dict_period['days']
-        period = period // 3600 // 24  # количество дней
-    elif ((24 * 3600) * 365) <= period < ((24 * 3600) * 365 * 100):
-        word = dict_period['years']
-        period = period // 3600 // 24 // 365  # Количество лет
-    elif period >= ((24 * 3600) * 365 * 100):
-        word = dict_period['century']
-        period = period // 3600 // 24 // 365 // 100  # Количество веков
-    # 15
-    if int(period) % 10 in (0, 5, 6, 7, 8, 9) or int(period) in range(11, 20):
-        if word == dict_period['seconds']:
-            word += dict_ends['seconds'][0]
-
-        if word == dict_period['minutes']:
-            word += dict_ends['minutes'][0]
-
-        if word == dict_period['hours']:
-            word += dict_ends['hours'][0]
-
-        if word == dict_period['days']:
-            word += dict_ends['days'][0]
-
-        if word == dict_period['years']:
-            word += dict_ends['years'][0]
-
-        if word == dict_period['century']:
-            word += dict_ends['century'][0]
-
-    elif int(period) % 10 == 1 and int(period) not in range(11, 20):  # 1
-        if word == dict_period['seconds']:
-            word += dict_ends['seconds'][1]
-
-        if word == dict_period['minutes']:
-            word += dict_ends['minutes'][1]
-
-        if word == dict_period['hours']:
-            word += dict_ends['hours'][1]
-
-        if word == dict_period['days']:
-            word += dict_ends['days'][1]
-
-        if word == dict_period['years']:
-            word += dict_ends['years'][1]
-
-        if word == dict_period['century']:
-            word += dict_ends['century'][1]
-
-    elif int(period) % 10 in (2, 3, 4):  # 4
-        if word == dict_period['seconds']:
-            word += dict_ends['seconds'][2]
-
-        if word == dict_period['minutes']:
-            word += dict_ends['minutes'][2]
-
-        if word == dict_period['hours']:
-            word += dict_ends['hours'][2]
-
-        if word == dict_period['days']:
-            word += dict_ends['days'][2]
-
-        if word == dict_period['years']:
-            word += dict_ends['years'][2]
-
-        if word == dict_period['century']:
-            word += dict_ends['century'][2]
-    result = str(f'{period:,}') + ' ' + word
-    return result
 
 
 # Запускаем бота
