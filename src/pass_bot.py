@@ -62,7 +62,7 @@ def handle_text(message):
         bot.send_message(message.chat.id,
                          f'{beautiful_password_second()}',)
     elif message.text.strip() == 'Пароль для соц сетей':
-        bot.send_message(message.chat.id, 'Выскакивает картинка, куда нажать для команды')
+        bot.send_message(message.chat.id, '*Нажми сюда* /social', parse_mode='MarkdownV2')
 
     elif message.text.strip() in ('Google', 'Yandex', 'Vk', 'Mail',
                                   'Facebook', 'Avito', 'Instagram',
