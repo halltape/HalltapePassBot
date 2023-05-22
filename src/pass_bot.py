@@ -4,7 +4,7 @@ from period_time import period_result
 from check_pass import check_pass, delete_most_popular
 from func_pass import generate_password, check_corrected_pass
 from func_pass import beautiful_password_first, beautiful_password_second
-from func_pass import social_password
+from func_pass import social_password, pass_corrector
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot('TOKEN')
@@ -15,28 +15,15 @@ bot = telebot.TeleBot('TOKEN')
 # Добавляем две кнопки
 def start(m, res=False):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row('Красивый пароль (I вариант)')
-    markup.row('Красивый пароль (II вариант)')
-    markup.row('Пароль для соц сетей')
-    markup.row('Обычный пароль')
+    markup.row('Красивый пароль\n(I вариант)', 'Красивый пароль\n(II вариант)')
+    markup.row('Пароль для соц сетей', 'Обычный пароль')
+    markup.row('Проверить свой пароль')
     bot.send_message(m.chat.id, '\n\n*🔐 Проверь и усложни свой пароль\\!\n'
                      'Отправь его боту в виде сообщения*\n\n'
                      '*Либо можешь сгенерировать уже готовый\!*\n\n'
                      '1️⃣ Красивый пароль\n'
                      '\n2️⃣ Пароль для соц сетей\n'
                      '\n3️⃣ Обычный пароль',
-                     reply_markup=markup, parse_mode='MarkdownV2')
-
-
-# Функция, обрабатывающая команду /start
-@bot.message_handler(commands=["social"])
-# Добавляем две кнопки
-def social(m, res=True):
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row('Google', 'Yandex', 'Vk', 'Mail')
-    markup.row('Facebook', 'Avito', 'Instagram')
-    markup.row('Gosuslugi', 'Универсальный')
-    bot.send_message(m.chat.id, '*Выбери* к чему тебе нужно придумать пароль',
                      reply_markup=markup, parse_mode='MarkdownV2')
 
 
@@ -55,22 +42,40 @@ def handle_text(message):
     check_string = string.ascii_lowercase + string.ascii_uppercase + \
         string.punctuation + string.digits
 
-    if message.text.strip() == 'Красивый пароль (I вариант)':
+    if message.text.strip() == 'Красивый пароль\n(I вариант)':
         bot.send_message(message.chat.id,
                          f'{beautiful_password_first()}',)
-    elif message.text.strip() == 'Красивый пароль (II вариант)':
+    elif message.text.strip() == 'Красивый пароль\n(II вариант)':
         bot.send_message(message.chat.id,
                          f'{beautiful_password_second()}',)
     elif message.text.strip() == 'Пароль для соц сетей':
-        bot.send_message(message.chat.id, '*Нажми сюда* /social', parse_mode='MarkdownV2')
+        markup = telebot.types.ReplyKeyboardMarkup(True)
+        markup.row('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail')
+        markup.row('💬 Facebook', '📺 Avito', '📱 Instagram')
+        markup.row('📄 Gosuslugi', '🆓 Универсальный')
+        markup.row('🏠 Назад в меню')
+        bot.send_message(message.chat.id, '*Выбери* к чему тебе нужно придумать пароль',
+                         reply_markup=markup, parse_mode='MarkdownV2')
 
-    elif message.text.strip() in ('Google', 'Yandex', 'Vk', 'Mail',
-                                  'Facebook', 'Avito', 'Instagram',
-                                  'Gosuslugi'):
-        bot.send_message(message.chat.id, social_password(message.text.lower()))
+    elif message.text.strip() == 'Проверить свой пароль':
+        bot.send_message(message.chat.id, '*🤖 Отправь свой пароль в виде сообщения*',
+                         parse_mode='MarkdownV2')
 
-    elif message.text.strip() == 'Универсальный':
+    elif message.text.strip() in ('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail',
+                                  '💬 Facebook', '📺 Avito', '📱 Instagram',
+                                  '📄 Gosuslugi'):
+        text_to_function = message.text.lower()
+        bot.send_message(message.chat.id, social_password(text_to_function[2:]))
+
+    elif message.text.strip() == '🆓 Универсальный':
         bot.send_message(message.chat.id, social_password('*****'))
+
+    elif message.text.strip() == '🏠 Назад в меню':
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup.row('Красивый пароль\n(I вариант)', 'Красивый пароль\n(II вариант)')
+        markup.row('Пароль для соц сетей', 'Обычный пароль')
+        markup.row('Проверить свой пароль')
+        bot.send_message(message.chat.id, '🏝 Ты в меню', reply_markup=markup)
 
     elif message.text.strip() == 'Обычный пароль':
         answer = strong_pass(False)
@@ -95,9 +100,16 @@ def handle_text(message):
 
 
 def get_pass(message: types.Message):   # Функция проверки пароля
+
+    attention = '❌ Тебе нужно усилить твой пароль!\n\n'
+    good_attention = '✅ У тебя хороший пароль!\n'
+    sun_attention = '\n⏳ Солнце уже потухнет, а твой пароль все еще будут подбирать\n'
+
     if len(message.text) <= 50:
+
         bit, time, unique, dict_answer = check_pass(message.text)
         verdict, time_final = '', ''
+
         # Функция, которая возвращает строку с числом и периодом времени
         period = period_result(time)
         if dict_answer['digit'] is False:
@@ -124,109 +136,51 @@ def get_pass(message: types.Message):   # Функция проверки пар
                 time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
 
         bit_final = '\nНадежность пароля 'f'{round(bit / 97 * 100)} %'
+
         if verdict != '' and bit < 97:
             if dict_answer['length'] < 16 \
                     and (time // 3600 // 24 // 365) > 1 and unique > 0.5:
-                verdict_final = 'ℹ Пароль надежный,' \
-                    ' но обрати внимание на комментарии ниже'
+                verdict_final = good_attention
                 if period is True:
-                    time_final = '\n⏳ Солнце уже потухнет, '\
-                        'а твой пароль все еще будут подбирать\n'
+                    time_final = sun_attention
                 else:
                     time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
-                verdict_final += '\n\n' + verdict + time_final + bit_final
+                verdict_final += time_final
             else:
-                verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
-                    + verdict + time_final + bit_final
+                verdict_final = attention + verdict + time_final + bit_final
+
         if bit > 96 and unique > 0.6 and dict_answer['duplicates'][0] is False\
                 and dict_answer['duplicates'][1] is False:
             if period is True:
-                time_final = '\n⏳ Солнце уже потухнет, '\
-                    'а твой пароль все еще будут подбирать\n'
+                time_final = sun_attention
             else:
                 time_final = '\nНа его взлом уйдет 'f'{time}\n'
-            verdict_final = '✅ У тебя хороший пароль!\n' \
-                + time_final + bit_final
+            verdict_final = good_attention + time_final
         else:
             if bit > 96:
                 bit_final = ''
-                verdict_final = '❌ Тебе нужно усилить твой пароль!\n\n' \
-                    + verdict + time_final + bit_final
+                verdict_final = attention + verdict + time_final + bit_final
     else:
         verdict_final = '♾ Пароль слишком длинный, в этом нет смысла'
 
     bot.send_message(message.chat.id, verdict_final)
+
     if verdict_final[0] == '❌':
         # инлайновая клавиатура
         inMurkup = types.InlineKeyboardMarkup(row_width=1)
-        inline_button1 = types.InlineKeyboardButton('Максимальная ' \
-                                                    'защита (Рекомендуется)', callback_data='1' + "|" + message.text)
-        inline_button2 = types.InlineKeyboardButton('Немного усложнить',
-                                                   callback_data='2' + "|" + message.text)
-        inMurkup.add(inline_button1)
-        inMurkup.add(inline_button2)
-        bot.send_message(message.chat.id, 'Ты можешь усилить свой пароль',
-                         reply_markup=inMurkup)
-
-    if verdict_final[0] == 'ℹ':
-        # инлайновая клавиатура
-        inMurkup = types.InlineKeyboardMarkup(row_width=1)
-        inline_button3 = types.InlineKeyboardButton('Немного усложнить',
-                                                   callback_data='3' + "|" + message.text)
-        inMurkup.add(inline_button3)
-        bot.send_message(message.chat.id, 'Ты можешь усилить свой пароль',
-                         reply_markup=inMurkup)
+        inline_button = types.InlineKeyboardButton('💪🏻 Усложнить пароль',
+                                                   callback_data=message.text)
+        inMurkup.add(inline_button)
+        bot.send_message(message.chat.id,
+                         '*Нажми кнопку*, чтобы усложнить свой пароль\n' +
+                         12 * '\t' + '*Жми сколько влезет\\!*',
+                         parse_mode='MarkdownV2', reply_markup=inMurkup)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
-    import string
-    check_string = string.ascii_lowercase + string.ascii_uppercase + string.punctuation + string.digits
-    call_back_pass = call.data[2:]
-    if call.data[0] == '1':  # Максимальное усложнение
-        # Из множества в строку
-        s = ''.join(set(call_back_pass))
-        corrected_pass = s + strong_pass(False)
-
-        # shuffle corrected_pass
-        corrected_pass = ''.join(random.sample(corrected_pass,
-                                               len(corrected_pass)))
-        digits, letters = check_corrected_pass(corrected_pass)
-        unique = len(set(corrected_pass)) / len(corrected_pass)
-
-        # Пока измененный пароль не будет содержать дубликатов и цифр
-        while digits is not False and letters is not False:
-            corrected_pass = s + strong_pass(False)
-            corrected_pass = ''.join(random.sample(corrected_pass,
-                                                   len(corrected_pass)))
-            digits, letters = check_corrected_pass(corrected_pass)
-            unique = len(set(corrected_pass)) / len(corrected_pass)
-
-        bot.send_message(call.message.chat.id, f'{corrected_pass[:18]}')
-    elif call.data[0] in ('2', '3'):
-        bit, time, unique, dict_answer = check_pass(call_back_pass)
-        while (len(call_back_pass) <= len(call.data[2:])):
-            if dict_answer['duplicates'][1] is True:
-                call_back_pass = delete_most_popular(call_back_pass,
-                                                     check_string)
-            if dict_answer['digit'] is False:
-                call_back_pass += random.choice(string.digits)
-            if dict_answer['lower'] is False:
-                call_back_pass += random.choice(string.ascii_lowercase)
-            if dict_answer['upper'] is False:
-                call_back_pass += random.choice(string.ascii_uppercase)
-            if dict_answer['special'] is False:
-                call_back_pass += random.choice('!#$%&()*+-:;=>?@_')
-            if call_back_pass == call.data[2:]:
-                dict = {'digit': True, 'lower': True, 'upper': True,
-                        'special': True, 'replace': False}
-                call_back_pass += generate_password(dict)
-                break
-        # shuffle corrected_pass
-        call_back_pass = ''.join(random.sample(call_back_pass,
-                                               len(call_back_pass)))
-        bot.send_message(call.message.chat.id, call_back_pass)
-    return 0
+    corrected_password = pass_corrector(call.data)
+    bot.send_message(call.message.chat.id, corrected_password)
 
 
 # Запускаем бота
