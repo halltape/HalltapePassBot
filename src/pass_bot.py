@@ -7,7 +7,7 @@ from func_pass import beautiful_password_first, beautiful_password_second
 from func_pass import social_password, pass_corrector
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('6172414813:AAGLvVUX0JQfxqEcSkuy9S8TNvp31cEXs6M')
+bot = telebot.TeleBot('TOKEN')
 
 
 # Функция, обрабатывающая команду /start
