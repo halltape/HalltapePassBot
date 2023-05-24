@@ -102,6 +102,7 @@ def handle_text(message):
 def get_pass(message: types.Message):   # Функция проверки пароля
 
     attention = '❌ Тебе нужно усилить твой пароль!\n\n'
+    middle_attention = 'ℹ️ Пароль неплохой, но обрати внимание на замечания\n\n'
     good_attention = '✅ У тебя хороший пароль!\n'
     sun_attention = '\n⏳ Солнце уже потухнет, а твой пароль все еще будут подбирать\n'
 
@@ -140,7 +141,7 @@ def get_pass(message: types.Message):   # Функция проверки пар
         if verdict != '' and bit < 97:
             if dict_answer['length'] < 16 \
                     and (time // 3600 // 24 // 365) > 1 and unique > 0.5:
-                verdict_final = good_attention
+                verdict_final = middle_attention + verdict
                 if period is True:
                     time_final = sun_attention
                 else:
@@ -165,7 +166,7 @@ def get_pass(message: types.Message):   # Функция проверки пар
 
     bot.send_message(message.chat.id, verdict_final)
 
-    if verdict_final[0] == '❌':
+    if verdict_final[0] in ('❌', 'ℹ'):
         # инлайновая клавиатура
         inMurkup = types.InlineKeyboardMarkup(row_width=1)
         inline_button = types.InlineKeyboardButton('💪🏻 Усложнить пароль',
