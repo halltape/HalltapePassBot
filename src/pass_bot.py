@@ -7,7 +7,7 @@ from func_pass import beautiful_password_first, beautiful_password_second
 from func_pass import social_password, pass_corrector
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('TOKEN')
+bot = telebot.TeleBot('6172414813:AAGLvVUX0JQfxqEcSkuy9S8TNvp31cEXs6M')
 
 
 # Функция, обрабатывающая команду /start
@@ -52,7 +52,7 @@ def handle_text(message):
         markup = telebot.types.ReplyKeyboardMarkup(True)
         markup.row('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail')
         markup.row('💬 Facebook', '📺 Avito', '📱 Instagram')
-        markup.row('📄 Gosuslugi', '🆓 Универсальный')
+        markup.row('📄 Gosuslugi', '🔥 Свой вариант')
         markup.row('🏠 Назад в меню')
         bot.send_message(message.chat.id, '*Выбери* к чему тебе нужно придумать пароль',
                          reply_markup=markup, parse_mode='MarkdownV2')
@@ -67,8 +67,10 @@ def handle_text(message):
         text_to_function = message.text.lower()
         bot.send_message(message.chat.id, social_password(text_to_function[2:]))
 
-    elif message.text.strip() == '🆓 Универсальный':
-        bot.send_message(message.chat.id, social_password('*****'))
+    elif message.text.strip() == '🔥 Свой вариант':
+        bot.send_message(message.chat.id, 'Напиши название *сайта* или *приложения*', parse_mode='MarkdownV2')
+        bot.register_next_step_handler(message, get_individual)
+        private_site = message
 
     elif message.text.strip() == '🏠 Назад в меню':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
@@ -96,7 +98,13 @@ def handle_text(message):
                              '\- Есть нестандартные символы\n\n'
                              '*P\.S\. Бот различает русский и латинский алфавит*',
                              parse_mode='MarkdownV2')
-    return 0
+
+
+#  Функция обработки ввода пользователя названия сайта
+def get_individual(message: types.Message):
+    bot.send_message(message.chat.id, '💎 Вот *пять вариантов* для тебя\\!', parse_mode='MarkdownV2')
+    for _ in range(0, 5):
+        bot.send_message(message.chat.id, social_password(message.text))
 
 
 def get_pass(message: types.Message):   # Функция проверки пароля
@@ -109,7 +117,9 @@ def get_pass(message: types.Message):   # Функция проверки пар
     if len(message.text) <= 50:
 
         bit, time, unique, dict_answer = check_pass(message.text)
-        verdict, time_final = '', ''
+        verdict, time_final, verdict_final = '', '', ''
+        difference = 9 - dict_answer['length']
+        verdict_final = 'test'
 
         # Функция, которая возвращает строку с числом и периодом времени
         period = period_result(time)
@@ -121,8 +131,8 @@ def get_pass(message: types.Message):   # Функция проверки пар
             verdict += '⚠️ Нет букв в верхнем регистре\n'
         if dict_answer['special'] is False:
             verdict += '⚠️ Нет специальных символов\n'
-        if dict_answer['length'] < 16:
-            verdict += '⚠️ Длина пароля меньше 16 символов\n'
+        if dict_answer['length'] < 9:
+            verdict += '⚠️ Добавь в пароль еще 'f'{difference} символов\n'
         if dict_answer['duplicates'][0] is True:
             verdict += '⚠️ Больше четырех чисел друг за другом\n'
         if dict_answer['duplicates'][1] is True:
@@ -135,32 +145,34 @@ def get_pass(message: types.Message):   # Функция проверки пар
                 time_final = '\n⏳ Пароль взломают моментально\n'
             else:
                 time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
+        elif period is True:
+            time_final = sun_attention
+        else:
+            time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
 
         bit_final = '\nНадежность пароля 'f'{round(bit / 97 * 100)} %'
 
         if verdict != '' and bit < 97:
             if dict_answer['length'] < 16 \
-                    and (time // 3600 // 24 // 365) > 1 and unique > 0.5:
-                verdict_final = middle_attention + verdict
-                if period is True:
-                    time_final = sun_attention
-                else:
-                    time_final = '\n⏳ На его взлом уйдет 'f'{period}\n'
-                verdict_final += time_final
+                    and (time // 3600 // 24 // 365) > 1 and unique > 0.5 \
+                    and dict_answer['duplicates'][0] is False \
+                    and dict_answer['duplicates'][1] is False:
+                verdict_final = middle_attention + verdict + time_final
             else:
+                if (time // 3600 // 24) > 183:
+                    time_final = ''
                 verdict_final = attention + verdict + time_final + bit_final
 
-        if bit > 96 and unique > 0.6 and dict_answer['duplicates'][0] is False\
+        if bit > 96 and unique > 0.6 \
+                and dict_answer['duplicates'][0] is False\
                 and dict_answer['duplicates'][1] is False:
-            if period is True:
-                time_final = sun_attention
-            else:
-                time_final = '\nНа его взлом уйдет 'f'{time}\n'
             verdict_final = good_attention + time_final
         else:
             if bit > 96:
                 bit_final = ''
-                verdict_final = attention + verdict + time_final + bit_final
+                verdict_final = attention + verdict + bit_final
+        if verdict == '':
+            verdict_final = good_attention + time_final
     else:
         verdict_final = '♾ Пароль слишком длинный, в этом нет смысла'
 
@@ -174,6 +186,16 @@ def get_pass(message: types.Message):   # Функция проверки пар
         inMurkup.add(inline_button)
         bot.send_message(message.chat.id,
                          '*Нажми кнопку*, чтобы усложнить свой пароль\n' +
+                         12 * '\t' + '*Жми сколько влезет\\!*',
+                         parse_mode='MarkdownV2', reply_markup=inMurkup)
+    if verdict_final[0] in ('✅'):
+        # инлайновая клавиатура
+        inMurkup = types.InlineKeyboardMarkup(row_width=1)
+        inline_button = types.InlineKeyboardButton('👁 Сделать красивым',
+                                                   callback_data=message.text)
+        inMurkup.add(inline_button)
+        bot.send_message(message.chat.id,
+                         'Я могу сделать твой пароль *красивее*\n' +
                          12 * '\t' + '*Жми сколько влезет\\!*',
                          parse_mode='MarkdownV2', reply_markup=inMurkup)
 

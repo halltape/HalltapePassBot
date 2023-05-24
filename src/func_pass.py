@@ -190,8 +190,14 @@ def pass_corrector(call_pass):
     list_digits = list(map(str, set(list_digits)))
     list_punctuation = list(map(str, set(list_punctuation)))
 
+    random_choice_variant = random.randint(1, 2)
+    if random_choice_variant == 1:
+        random_pass_length = random.randint(3, 6)
+    else:
+        random_pass_length = random.randint(4, 6)
+
     for j in range(2):
-        for i in range(5):
+        for i in range(random_pass_length):
             if i % 2 == 0:
                 if i == 0:
                     if len(list_consonants) != 0:
@@ -208,8 +214,9 @@ def pass_corrector(call_pass):
                     password += random.choice(str(list_vowels.pop()).lower())
                 else:
                     password += random.choice(vowels.lower())
-        if j < 1:
-            password += '_'
+        if random_choice_variant == 1:
+            if j < 1:
+                password += '_'
 
     if len(list_digits) != 0:
         password += random.choice(list_digits.pop())
