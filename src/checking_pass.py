@@ -4,6 +4,17 @@ import math
 import sys
 
 
+def check_table_words(password):
+    file_path = 'PATH'
+    word = ''
+    with open(file_path, 'r') as file:
+        for line in file:
+            line = line.strip()
+            if line.lower() in password.lower() and len(line) > 4:
+                word += line + '\n'
+    return word
+
+
 def check_pass(password):
     total, count, summ = 0, 0, 0
     dictionary = {'digit': False, 'lower': False,

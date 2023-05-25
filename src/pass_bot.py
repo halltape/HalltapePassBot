@@ -1,13 +1,12 @@
 from library import *
 from func_pass import strong_pass
-from period_time import period_result
-from check_pass import check_pass, delete_most_popular
-from func_pass import generate_password, check_corrected_pass
-from func_pass import beautiful_password_first, beautiful_password_second
+from end_of_words import period_result, end_of_word
+from checking_pass import check_pass, check_table_words
 from func_pass import social_password, pass_corrector
+from func_pass import beautiful_password_first, beautiful_password_second
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('TOKEN')
+bot = telebot.TeleBot('TELEGRAM_API_TOKEN')
 
 
 # Функция, обрабатывающая команду /start
@@ -117,12 +116,16 @@ def get_pass(message: types.Message):   # Функция проверки пар
     if len(message.text) <= 50:
 
         bit, time, unique, dict_answer = check_pass(message.text)
+        leaked_passwords = check_table_words(message.text)
+
         verdict, time_final, verdict_final = '', '', ''
         difference = 9 - dict_answer['length']
+        difference_word_end = end_of_word(difference)
         verdict_final = 'test'
 
         # Функция, которая возвращает строку с числом и периодом времени
         period = period_result(time)
+
         if dict_answer['digit'] is False:
             verdict += '⚠️ Нет цифр\n'
         if dict_answer['lower'] is False:
@@ -132,13 +135,16 @@ def get_pass(message: types.Message):   # Функция проверки пар
         if dict_answer['special'] is False:
             verdict += '⚠️ Нет специальных символов\n'
         if dict_answer['length'] < 9:
-            verdict += '⚠️ Добавь в пароль еще 'f'{difference} символов\n'
+            verdict += '⚠️ Добавь в пароль еще 'f'{difference} 'f'{difference_word_end}\n'
         if dict_answer['duplicates'][0] is True:
             verdict += '⚠️ Больше четырех чисел друг за другом\n'
         if dict_answer['duplicates'][1] is True:
             verdict += '⚠️ Повторяющиеся символы\n'
         if unique < 0.6:
             verdict += '⚠️ Малая уникальность пароля\n'
+        if leaked_passwords != '':
+            verdict += '⚠️ Твой пароль полностью или частично слит в сеть\n' \
+                '\n⬇️ Слитые пароли\n' + leaked_passwords
 
         if (time // 3600 // 24) < 183:
             if time < 1:  # Если время меньше 1 секунды, чтобы не писать мск
@@ -156,7 +162,8 @@ def get_pass(message: types.Message):   # Функция проверки пар
             if dict_answer['length'] < 16 \
                     and (time // 3600 // 24 // 365) > 1 and unique > 0.5 \
                     and dict_answer['duplicates'][0] is False \
-                    and dict_answer['duplicates'][1] is False:
+                    and dict_answer['duplicates'][1] is False \
+                    and leaked_passwords == '':
                 verdict_final = middle_attention + verdict + time_final
             else:
                 if (time // 3600 // 24) > 183:

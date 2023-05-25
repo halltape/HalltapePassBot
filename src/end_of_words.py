@@ -1,4 +1,14 @@
-# Function for converting the time
+def end_of_word(number):
+    word = 'символ'
+    dict_word_ends = {'end': ['', 'а', 'ов']}
+    if number % 10 == 1 and number not in range(11, 20):  # 1
+        word += dict_word_ends['end'][0]
+    elif number % 10 in (2, 3, 4):  # 4
+        word += dict_word_ends['end'][1]
+    elif number % 10 in (0, 5, 6, 7, 8, 9) or number in range(11, 20):
+        word += dict_word_ends['end'][2]
+    return word
+
 
 def period_result(period):
     dict_period = {'seconds': 'секунд',
