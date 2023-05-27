@@ -1,4 +1,5 @@
 from library import *
+from checking_pass import check_table_words
 
 
 def generate_password(dict) -> str:
@@ -81,7 +82,7 @@ def check_corrected_pass(correct_pass) -> tuple[bool, bool]:
 def beautiful_password_first():
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(3, 6)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
     word = ''
     choice = random.randint(0, 1)
     for j in range(2):
@@ -105,13 +106,16 @@ def beautiful_password_first():
         if j < 1:
             word += '_'
     word += random.choice(string.digits) + random.choice('!@#$%*')
-    return word
+    if check_table_words(word) != '':
+        beautiful_password_first
+    else:
+        return word
 
 
 def beautiful_password_second():
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(4, 6)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(4, 5)  # длина слова будет от 3 до 6 символов
     word = ''
     choice = random.randint(0, 1)
     for _ in range(2):
@@ -139,7 +143,98 @@ def beautiful_password_second():
 def social_password(social_name):
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(3, 6)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
+    word = ''
+    choice = random.randint(0, 1)
+    for j in range(2):
+        for i in range(word_length):
+            if i % 2 == 0:
+                if i == 0:
+                    if choice == 1:
+                        word += random.choice(consonants.upper())
+                    else:
+                        word += random.choice(vowels.upper())
+                else:
+                    if choice == 1:
+                        word += random.choice(consonants)
+                    else:
+                        word += random.choice(vowels)
+            else:
+                if choice == 1:
+                    word += random.choice(vowels)
+                else:
+                    word += random.choice(consonants)
+        if j < 1:
+            word += '_' + social_name + '_'
+    word += random.choice(string.digits) + random.choice('!@#$%*')
+    return word
+
+
+def beautiful_password_first():
+    vowels = 'aeiou'
+    consonants = 'bcdfghjklmnpqrstvwxyz'
+    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
+    word = ''
+    choice = random.randint(0, 1)
+    for j in range(2):
+        for i in range(word_length):
+            if i % 2 == 0:
+                if i == 0:
+                    if choice == 1:
+                        word += random.choice(consonants.upper())
+                    else:
+                        word += random.choice(vowels.upper())
+                else:
+                    if choice == 1:
+                        word += random.choice(consonants)
+                    else:
+                        word += random.choice(vowels)
+            else:
+                if choice == 1:
+                    word += random.choice(vowels)
+                else:
+                    word += random.choice(consonants)
+        if j < 1:
+            word += '_'
+    word += random.choice(string.digits) + random.choice('!@#$%*')
+    if check_table_words(word) != '':
+        beautiful_password_first
+    else:
+        return word
+
+
+def beautiful_password_second():
+    vowels = 'aeiou'
+    consonants = 'bcdfghjklmnpqrstvwxyz'
+    word_length = random.randint(4, 5)  # длина слова будет от 3 до 6 символов
+    word = ''
+    choice = random.randint(0, 1)
+    for _ in range(2):
+        for i in range(word_length):
+            if i % 2 == 0:
+                if i == 0:
+                    if choice == 1:
+                        word += random.choice(consonants.upper())
+                    else:
+                        word += random.choice(vowels.upper())
+                else:
+                    if choice == 1:
+                        word += random.choice(consonants)
+                    else:
+                        word += random.choice(vowels)
+            else:
+                if choice == 1:
+                    word += random.choice(vowels)
+                else:
+                    word += random.choice(consonants)
+    word += random.choice(string.digits) + random.choice('!@#$%*')
+    return word
+
+
+def social_password(social_name):
+    vowels = 'aeiou'
+    consonants = 'bcdfghjklmnpqrstvwxyz'
+    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
     word = ''
     choice = random.randint(0, 1)
     for j in range(2):
@@ -189,12 +284,11 @@ def pass_corrector(call_pass):
     list_consonants = list(map(str, set(list_consonants)))
     list_digits = list(map(str, set(list_digits)))
     list_punctuation = list(map(str, set(list_punctuation)))
-
     random_choice_variant = random.randint(1, 2)
     if random_choice_variant == 1:
-        random_pass_length = random.randint(3, 6)
+        random_pass_length = random.randint(3, 5)
     else:
-        random_pass_length = random.randint(4, 6)
+        random_pass_length = random.randint(4, 5)
 
     for j in range(2):
         for i in range(random_pass_length):

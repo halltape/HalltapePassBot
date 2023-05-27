@@ -1,12 +1,13 @@
 from library import *
 from func_pass import strong_pass
+from faq_bot import faq_about
 from end_of_words import period_result, end_of_word
 from checking_pass import check_pass, check_table_words
 from func_pass import social_password, pass_corrector
 from func_pass import beautiful_password_first, beautiful_password_second
 
 # Создаем экземпляр бота
-bot = telebot.TeleBot('TELEGRAM_API_TOKEN')
+bot = telebot.TeleBot('TOKEN')
 
 
 # Функция, обрабатывающая команду /start
@@ -14,13 +15,12 @@ bot = telebot.TeleBot('TELEGRAM_API_TOKEN')
 # Добавляем две кнопки
 def start(m, res=False):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row('Красивый пароль\n(I вариант)', 'Красивый пароль\n(II вариант)')
+    markup.row('Пароль\n(легко запомнить)')
     markup.row('Пароль для соц сетей', 'Обычный пароль')
     markup.row('Проверить свой пароль')
-    bot.send_message(m.chat.id, '\n\n*🔐 Проверь и усложни свой пароль\\!\n'
-                     'Отправь его боту в виде сообщения*\n\n'
+    bot.send_message(m.chat.id, '\n\n*🔐 Напиши боту свой пароль и он проверит его на надежность*\\!\n'
                      '*Либо можешь сгенерировать уже готовый\!*\n\n'
-                     '1️⃣ Красивый пароль\n'
+                     '1️⃣ Легкозапоминающийся пароль\n'
                      '\n2️⃣ Пароль для соц сетей\n'
                      '\n3️⃣ Обычный пароль',
                      reply_markup=markup, parse_mode='MarkdownV2')
@@ -33,6 +33,13 @@ def help(m, res=False):
                      'писать *@halltape*\n', parse_mode='MarkdownV2')
 
 
+# Функция, обрабатывающая команду /about
+@bot.message_handler(commands=["about"])
+def help(m, res=False):
+    result = faq_about()
+    bot.send_message(m.chat.id, result, parse_mode='MarkdownV2')
+
+
 # Получение сообщений от юзера
 @bot.message_handler(content_types=["text"])
 def handle_text(message):
@@ -41,23 +48,22 @@ def handle_text(message):
     check_string = string.ascii_lowercase + string.ascii_uppercase + \
         string.punctuation + string.digits
 
-    if message.text.strip() == 'Красивый пароль\n(I вариант)':
+    if message.text.strip() == 'Пароль\n(легко запомнить)':
         bot.send_message(message.chat.id,
                          f'{beautiful_password_first()}',)
-    elif message.text.strip() == 'Красивый пароль\n(II вариант)':
-        bot.send_message(message.chat.id,
-                         f'{beautiful_password_second()}',)
     elif message.text.strip() == 'Пароль для соц сетей':
         markup = telebot.types.ReplyKeyboardMarkup(True)
         markup.row('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail')
         markup.row('💬 Facebook', '📺 Avito', '📱 Instagram')
         markup.row('📄 Gosuslugi', '🔥 Свой вариант')
         markup.row('🏠 Назад в меню')
-        bot.send_message(message.chat.id, '*Выбери* к чему тебе нужно придумать пароль',
+        bot.send_message(message.chat.id,
+                         '*Выбери* к чему тебе нужно придумать пароль',
                          reply_markup=markup, parse_mode='MarkdownV2')
 
     elif message.text.strip() == 'Проверить свой пароль':
-        bot.send_message(message.chat.id, '*🤖 Отправь свой пароль в виде сообщения*',
+        bot.send_message(message.chat.id,
+                         '*🤖 Отправь свой пароль в виде сообщения*',
                          parse_mode='MarkdownV2')
 
     elif message.text.strip() in ('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail',
@@ -67,13 +73,14 @@ def handle_text(message):
         bot.send_message(message.chat.id, social_password(text_to_function[2:]))
 
     elif message.text.strip() == '🔥 Свой вариант':
-        bot.send_message(message.chat.id, 'Напиши название *сайта* или *приложения*', parse_mode='MarkdownV2')
+        bot.send_message(message.chat.id,
+                         'Напиши название *сайта* или *приложения*',
+                         parse_mode='MarkdownV2')
         bot.register_next_step_handler(message, get_individual)
-        private_site = message
 
     elif message.text.strip() == '🏠 Назад в меню':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.row('Красивый пароль\n(I вариант)', 'Красивый пароль\n(II вариант)')
+        markup.row('Пароль\n(легко запомнить)')
         markup.row('Пароль для соц сетей', 'Обычный пароль')
         markup.row('Проверить свой пароль')
         bot.send_message(message.chat.id, '🏝 Ты в меню', reply_markup=markup)
@@ -95,23 +102,36 @@ def handle_text(message):
                              '\- Есть пробелы\n'
                              '\- Перепутана русская *A* и латинская\n'
                              '\- Есть нестандартные символы\n\n'
-                             '*P\.S\. Бот различает русский и латинский алфавит*',
+                             '*P\.S\. Бот различает русский и '
+                             'атинский алфавит*',
                              parse_mode='MarkdownV2')
 
 
 #  Функция обработки ввода пользователя названия сайта
 def get_individual(message: types.Message):
+    text = message.text
+    if message.text.strip() in ('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail',
+                                '💬 Facebook', '📺 Avito', '📱 Instagram',
+                                '📄 Gosuslugi'):
+        text = message.text[2:].lower()
+    elif message.text.strip() == '🔥 Свой вариант':
+        bot.send_message(message.chat.id, '❌ *Тебе нужно было'
+                         ' ввести название САЙТА\\!*\n', parse_mode='MarkdownV2')
+        text = 'НУ ВОТ ДЕРЖИ СВОИ ПИРОЖКИ!'
+        return 0
     bot.send_message(message.chat.id, '💎 Вот *пять вариантов* для тебя\\!', parse_mode='MarkdownV2')
     for _ in range(0, 5):
-        bot.send_message(message.chat.id, social_password(message.text))
+        bot.send_message(message.chat.id, social_password(text))
 
 
 def get_pass(message: types.Message):   # Функция проверки пароля
 
     attention = '❌ Тебе нужно усилить твой пароль!\n\n'
-    middle_attention = 'ℹ️ Пароль неплохой, но обрати внимание на замечания\n\n'
+    middle_attention = 'ℹ️ Пароль неплохой,' \
+        ' но обрати внимание на замечания\n\n'
     good_attention = '✅ У тебя хороший пароль!\n'
-    sun_attention = '\n⏳ Солнце уже потухнет, а твой пароль все еще будут подбирать\n'
+    sun_attention = '\n⏳ Солнце уже потухнет,' \
+        ' а твой пароль все еще будут подбирать\n'
 
     if len(message.text) <= 50:
 
@@ -135,7 +155,8 @@ def get_pass(message: types.Message):   # Функция проверки пар
         if dict_answer['special'] is False:
             verdict += '⚠️ Нет специальных символов\n'
         if dict_answer['length'] < 9:
-            verdict += '⚠️ Добавь в пароль еще 'f'{difference} 'f'{difference_word_end}\n'
+            verdict += '⚠️ Добавь в пароль' \
+            ' еще 'f'{difference} 'f'{difference_word_end}\n'
         if dict_answer['duplicates'][0] is True:
             verdict += '⚠️ Больше четырех чисел друг за другом\n'
         if dict_answer['duplicates'][1] is True:
