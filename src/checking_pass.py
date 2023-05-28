@@ -1,11 +1,12 @@
-import random
-import string
-import math
+import os
 import sys
+import math
+import string
+import random
 
 
 def check_table_words(password):
-    file_path = 'PATH'
+    file_path = os.getcwd() + '/text_files/leaked_passwords_1M.txt'
     word = ''
     with open(file_path, 'r') as file:
         for line in file:

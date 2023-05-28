@@ -1,3 +1,8 @@
+import os
+import math
+import string
+import random
+
 from library import *
 from checking_pass import check_table_words
 
@@ -301,12 +306,14 @@ def pass_corrector(call_pass):
             if i % 2 == 0:
                 if i == 0:
                     if len(list_consonants) != 0:
-                        password += random.choice(str(list_consonants.pop()).upper())
+                        password += \
+                            random.choice(str(list_consonants.pop()).upper())
                     else:
                         password += random.choice(consonants.upper())
                 else:
                     if len(list_consonants) != 0:
-                        password += random.choice(str(list_consonants.pop()).lower())
+                        password += \
+                            random.choice(str(list_consonants.pop()).lower())
                     else:
                         password += random.choice(consonants.lower())
             else:
@@ -331,9 +338,10 @@ def pass_corrector(call_pass):
 
 
 def create_nickname():
-    file_path = 'PATH2'
+    file_path = os.getcwd() + '/text_files/english_words.txt'
     nickname = ''
     with open(file_path, 'r') as file:
         line = [word.strip() for word in file if 3 < len(word) < 7]
-        nickname = random.choice(line).title() + '_' + random.choice(line).title()
+        nickname = random.choice(line).title() + '_' \
+            + random.choice(line).title()
     return nickname

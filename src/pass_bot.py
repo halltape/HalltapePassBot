@@ -1,3 +1,7 @@
+import string
+import telebot
+
+
 from library import *
 from func_pass import strong_pass
 from faq_bot import faq_about
@@ -20,8 +24,10 @@ def start(m, res=False):
     markup.row('Пароль для соц сетей', 'Обычный пароль')
     markup.row('Проверить свой пароль')
     markup.row('Создать никнейм')
-    bot.send_message(m.chat.id, '\n\n*🔐 Напиши боту свой пароль и он проверит его на надежность*\\!\n'
-                     '*Либо можешь сгенерировать уже готовый\!*\n\n'
+    bot.send_message(m.chat.id,
+                     '\n\n*🔐 Напиши боту свой пароль и'
+                     ' он проверит его на надежность*\\!\n'
+                     '*Либо можешь сгенерировать уже готовый\\!*\n\n'
                      '1️⃣ Легкозапоминающийся пароль\n'
                      '\n2️⃣ Пароль для соц сетей\n'
                      '\n3️⃣ Обычный пароль\n'
@@ -79,7 +85,8 @@ def handle_text(message):
                                   '💬 Facebook', '📺 Avito', '📱 Instagram',
                                   '📄 Gosuslugi'):
         text_to_function = message.text.lower()
-        bot.send_message(message.chat.id, social_password(text_to_function[2:]))
+        bot.send_message(message.chat.id,
+                         social_password(text_to_function[2:]))
 
     elif message.text.strip() == '🔥 Свой вариант':
         bot.send_message(message.chat.id,
@@ -109,29 +116,49 @@ def handle_text(message):
             bot.send_message(message.chat.id,
                              '❌ *Недопустимые символы*\n'
                              'Проверьте вводимый текст\n\n'
-                             '\- Есть пробелы\n'
-                             '\- Перепутана русская *A* и латинская\n'
-                             '\- Есть нестандартные символы\n\n'
-                             '*P\.S\. Бот различает русский и '
+                             '\\- Есть пробелы\n'
+                             '\\- Перепутана русская *A* и латинская\n'
+                             '\\- Есть нестандартные символы\n\n'
+                             '*P\\.S\\. Бот различает русский и '
                              'атинский алфавит*',
                              parse_mode='MarkdownV2')
 
 
 #  Функция обработки ввода пользователя названия сайта
 def get_individual(message: types.Message):
+
+    check_string = string.ascii_lowercase + string.ascii_uppercase + \
+        string.punctuation + string.digits
     text = message.text
+    flag = True
+    for char in message.text.strip():
+        if char not in (check_string):
+            flag = False
+
     if message.text.strip() in ('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail',
                                 '💬 Facebook', '📺 Avito', '📱 Instagram',
                                 '📄 Gosuslugi'):
         text = message.text[2:].lower()
-    elif message.text.strip() == '🔥 Свой вариант':
-        bot.send_message(message.chat.id, '❌ *Тебе нужно было'
-                         ' ввести название САЙТА\\!*\n', parse_mode='MarkdownV2')
-        text = 'НУ ВОТ ДЕРЖИ СВОИ ПИРОЖКИ!'
+        bot.send_message(message.chat.id, '💎 Вот *пять вариантов* для тебя\\!',
+                         parse_mode='MarkdownV2')
+        for _ in range(0, 5):
+            bot.send_message(message.chat.id, social_password(text))
+    elif flag is False:
+        bot.send_message(message.chat.id,
+                         '❌ *Недопустимые символы*\n'
+                         'Проверьте вводимый текст\n\n'
+                         '\\- Есть пробелы\n'
+                         '\\- Перепутана русская *A* и латинская\n'
+                         '\\- Есть нестандартные символы\n\n'
+                         '*P\\.S\\. Бот различает русский и '
+                         'латинский алфавит*',
+                         parse_mode='MarkdownV2')
         return 0
-    bot.send_message(message.chat.id, '💎 Вот *пять вариантов* для тебя\\!', parse_mode='MarkdownV2')
-    for _ in range(0, 5):
-        bot.send_message(message.chat.id, social_password(text))
+    else:
+        bot.send_message(message.chat.id, '💎 Вот *пять вариантов* для тебя\\!',
+                         parse_mode='MarkdownV2')
+        for _ in range(0, 5):
+            bot.send_message(message.chat.id, social_password(text))
 
 
 def get_pass(message: types.Message):   # Функция проверки пароля
@@ -166,7 +193,7 @@ def get_pass(message: types.Message):   # Функция проверки пар
             verdict += '⚠️ Нет специальных символов\n'
         if dict_answer['length'] < 9:
             verdict += '⚠️ Добавь в пароль' \
-            ' еще 'f'{difference} 'f'{difference_word_end}\n'
+                ' еще 'f'{difference} 'f'{difference_word_end}\n'
         if dict_answer['duplicates'][0] is True:
             verdict += '⚠️ Больше четырех чисел друг за другом\n'
         if dict_answer['duplicates'][1] is True:
