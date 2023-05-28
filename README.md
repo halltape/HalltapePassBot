@@ -1,3 +1,4 @@
+![MarineGEO circle logo](/assets/img/MarineGEO_logo.png "MarineGEO logo")
 # HalltapePassBot
 ## Бот для генерации паролей и проверки их надежности
 
