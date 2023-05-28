@@ -281,10 +281,16 @@ def pass_corrector(call_pass):
             list_punctuation.append(char)
 
     list_vowels = list(map(str, set(list_vowels)))
+    random.shuffle(list_vowels)
     list_consonants = list(map(str, set(list_consonants)))
+    random.shuffle(list_consonants)
     list_digits = list(map(str, set(list_digits)))
+    random.shuffle(list_digits)
     list_punctuation = list(map(str, set(list_punctuation)))
+    random.shuffle(list_punctuation)
+
     random_choice_variant = random.randint(1, 2)
+
     if random_choice_variant == 1:
         random_pass_length = random.randint(3, 5)
     else:
@@ -322,3 +328,12 @@ def pass_corrector(call_pass):
     else:
         password += random.choice('!@#$%*')
     return password
+
+
+def create_nickname():
+    file_path = 'PATH2'
+    nickname = ''
+    with open(file_path, 'r') as file:
+        line = [word.strip() for word in file if 3 < len(word) < 7]
+        nickname = random.choice(line).title() + '_' + random.choice(line).title()
+    return nickname

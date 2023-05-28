@@ -2,9 +2,10 @@ from library import *
 from func_pass import strong_pass
 from faq_bot import faq_about
 from end_of_words import period_result, end_of_word
-from checking_pass import check_pass, check_table_words
 from func_pass import social_password, pass_corrector
-from func_pass import beautiful_password_first, beautiful_password_second
+from checking_pass import check_pass, check_table_words
+from func_pass import beautiful_password_first, create_nickname
+
 
 # Создаем экземпляр бота
 bot = telebot.TeleBot('TOKEN')
@@ -18,11 +19,13 @@ def start(m, res=False):
     markup.row('Пароль\n(легко запомнить)')
     markup.row('Пароль для соц сетей', 'Обычный пароль')
     markup.row('Проверить свой пароль')
+    markup.row('Создать никнейм')
     bot.send_message(m.chat.id, '\n\n*🔐 Напиши боту свой пароль и он проверит его на надежность*\\!\n'
                      '*Либо можешь сгенерировать уже готовый\!*\n\n'
                      '1️⃣ Легкозапоминающийся пароль\n'
                      '\n2️⃣ Пароль для соц сетей\n'
-                     '\n3️⃣ Обычный пароль',
+                     '\n3️⃣ Обычный пароль\n'
+                     '\n4️⃣ Создать никнейм',
                      reply_markup=markup, parse_mode='MarkdownV2')
 
 
@@ -30,7 +33,11 @@ def start(m, res=False):
 @bot.message_handler(commands=["help"])
 def help(m, res=False):
     bot.send_message(m.chat.id, 'По всем вопросам работы бота '
-                     'писать *@halltape*\n', parse_mode='MarkdownV2')
+                     'писать *@halltape*\n'
+                     '\n*Подробное описание проекта*, а также весь'
+                     ' исходный код доступен по ссылке:\n\n'
+                     'https:\\/\\/github\\.com\\/halltape\\/HalltapePassBot',
+                     parse_mode='MarkdownV2')
 
 
 # Функция, обрабатывающая команду /about
@@ -65,6 +72,8 @@ def handle_text(message):
         bot.send_message(message.chat.id,
                          '*🤖 Отправь свой пароль в виде сообщения*',
                          parse_mode='MarkdownV2')
+    elif message.text.strip() == 'Создать никнейм':
+        bot.send_message(message.chat.id, f'{create_nickname()}',)
 
     elif message.text.strip() in ('🗺 Google', '📮 Yandex', '📘 Vk', '📬 Mail',
                                   '💬 Facebook', '📺 Avito', '📱 Instagram',
@@ -83,6 +92,7 @@ def handle_text(message):
         markup.row('Пароль\n(легко запомнить)')
         markup.row('Пароль для соц сетей', 'Обычный пароль')
         markup.row('Проверить свой пароль')
+        markup.row('Создать никнейм')
         bot.send_message(message.chat.id, '🏝 Ты в меню', reply_markup=markup)
 
     elif message.text.strip() == 'Обычный пароль':
