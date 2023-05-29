@@ -8,8 +8,8 @@ from checking_pass import check_table_words
 
 
 def generate_password(dict) -> str:
-    # По полученному словарю генерируем sample
-    # пароля из максимум 4 элементов и пишем в строку
+    # Generate a sample password
+    # consisting of a maximum of 4 elements and write it as a string
     sample_password = ''
     if dict['digit'] is True:
         sample_password += random.choice(string.digits)
@@ -27,26 +27,18 @@ def generate_password(dict) -> str:
 
 
 def final_pass(answ_dict, length) -> str:
-    # Собираем финальный пароль из сэмплов (каждый из 4 элементов)
-    build_password = ''  # Создаем пустую строку для будущего сэмпла
-    if length == 95:
-        build_password = string.digits + string.ascii_lowercase + \
-            string.ascii_uppercase + string.punctuation
-        # Обрезаем пароль до нужной длины
-        final_password = list(build_password[:95])
-        random.shuffle(final_password)  # Перемешиваем пароль
-        final_password = ''.join(final_password)  # Склеиваем обратно в строку
-    else:
-        # Собираем пароль, пока длина не превысит нужную
-        while len(build_password) <= length:
-            # Если длина будет n, то сэмпл соберается длиной n + 1
-            for _ in range(math.ceil(length / 4)):
-                # Конкатенация строк сэмплов пароля
-                build_password += generate_password(answ_dict)
-        # Обрезаем пароль до нужной длины
-        final_password = list(build_password[:length])
-        random.shuffle(final_password)  # Перемешиваем пароль
-        final_password = ''.join(final_password)  # Склеиваем обратно в строку
+    # Construct the final password from the samples
+    # (each consisting of 4 elements)
+    build_password = ''
+    # Build the password until its length exceeds the desired limit
+    while len(build_password) <= length:
+        # If the length will be n then length's sample builds with n + 1
+        for _ in range(math.ceil(length / 4)):
+            build_password += generate_password(answ_dict)
+    # Cut the password
+    final_password = list(build_password[:length])
+    random.shuffle(final_password)  # Shuffle it
+    final_password = ''.join(final_password)
     return final_password
 
 
@@ -64,7 +56,7 @@ def strong_pass(button):
 
 def check_corrected_pass(correct_pass) -> tuple[bool, bool]:
     count, summ, duplicates_digits, duplicates_letters = 0, 0, False, False
-    # Функция считает количество подряд идущих цифр
+    # The function counts the number of consecutive digits
     for c in correct_pass:
         if c in ('1234567890'):
             count += 1
@@ -73,7 +65,7 @@ def check_corrected_pass(correct_pass) -> tuple[bool, bool]:
         else:
             count = 0
 
-#  Функция считает количество подряд идущих символов
+#  The function counts the number of consecutive characters
     for i in range(1, len(correct_pass)):
         if correct_pass[i] == correct_pass[i - 1]:
             summ += 1
@@ -87,7 +79,7 @@ def check_corrected_pass(correct_pass) -> tuple[bool, bool]:
 def beautiful_password_first():
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(3, 5)  # The length between 3 and 5
     word = ''
     choice = random.randint(0, 1)
     for j in range(2):
@@ -120,7 +112,7 @@ def beautiful_password_first():
 def beautiful_password_second():
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(4, 5)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(4, 5)  # # The length between 4 and 5
     word = ''
     choice = random.randint(0, 1)
     for _ in range(2):
@@ -148,7 +140,7 @@ def beautiful_password_second():
 def social_password(social_name):
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(3, 5)  # # The length between 3 and 5
     word = ''
     choice = random.randint(0, 1)
     for j in range(2):
@@ -178,7 +170,7 @@ def social_password(social_name):
 def beautiful_password_first():
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(3, 5)  # # The length between 3 and 5
     word = ''
     choice = random.randint(0, 1)
     for j in range(2):
@@ -208,38 +200,10 @@ def beautiful_password_first():
         return word
 
 
-def beautiful_password_second():
-    vowels = 'aeiou'
-    consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(4, 5)  # длина слова будет от 3 до 6 символов
-    word = ''
-    choice = random.randint(0, 1)
-    for _ in range(2):
-        for i in range(word_length):
-            if i % 2 == 0:
-                if i == 0:
-                    if choice == 1:
-                        word += random.choice(consonants.upper())
-                    else:
-                        word += random.choice(vowels.upper())
-                else:
-                    if choice == 1:
-                        word += random.choice(consonants)
-                    else:
-                        word += random.choice(vowels)
-            else:
-                if choice == 1:
-                    word += random.choice(vowels)
-                else:
-                    word += random.choice(consonants)
-    word += random.choice(string.digits) + random.choice('!@#$%*')
-    return word
-
-
 def social_password(social_name):
     vowels = 'aeiou'
     consonants = 'bcdfghjklmnpqrstvwxyz'
-    word_length = random.randint(3, 5)  # длина слова будет от 3 до 6 символов
+    word_length = random.randint(3, 5)  # The length between 3 and 5
     word = ''
     choice = random.randint(0, 1)
     for j in range(2):

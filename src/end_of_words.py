@@ -32,19 +32,19 @@ def period_result(period):
         word = dict_period['seconds']
     elif 60 <= period < 3600:
         word = dict_period['minutes']
-        period = period // 60  # Количество часов
+        period = period // 60  # Minutes Count
     elif 3600 <= period < (24 * 3600):
         word = dict_period['hours']
-        period = period // 3600  # Количество часов
+        period = period // 3600  # Hours Count
     elif 24 * 3600 <= period < (24 * 3600) * 365:
         word = dict_period['days']
-        period = period // 3600 // 24  # количество дней
+        period = period // 3600 // 24  # Days Count
     elif ((24 * 3600) * 365) <= period < ((24 * 3600) * 365 * 100):
         word = dict_period['years']
-        period = period // 3600 // 24 // 365  # Количество лет
+        period = period // 3600 // 24 // 365  # Years Count
     elif period >= ((24 * 3600) * 365 * 100):
         word = dict_period['century']
-        period = period // 3600 // 24 // 365 // 100  # Количество веков
+        period = period // 3600 // 24 // 365 // 100  # Centuries Count
     # 15
     if int(period) % 10 in (0, 5, 6, 7, 8, 9) or int(period) in range(11, 20):
         if word == dict_period['seconds']:

@@ -34,7 +34,7 @@ def check_pass(password):
         total += 33
         dictionary['special'] = True
 
-# Функция считает количество подряд идущих цифр
+# The function counts the number of consecutive digits
     for c in password:
         if c in ('1234567890'):
             count += 1
@@ -43,7 +43,7 @@ def check_pass(password):
         else:
             count = 0
 
-#  Функция считает количество подряд идущих символов
+#  The function counts the number of consecutive characters
     for i in range(1, len(password)):
         if password[i] == password[i - 1]:
             summ += 1
@@ -52,15 +52,15 @@ def check_pass(password):
         else:
             summ = 0
 
-    entropy = round(math.log2(total**len(password)))  # Энтропия
+    entropy = round(math.log2(total**len(password)))  # Entropy
     if sys.float_info.max > total**len(password):
-        # Время подбора в секундах
+        # Time of brute force in seconds
         time_seconds = (round(total**len(password) / 3900000000))
     metric_unique = len(set(password)) / len(password)
     return entropy, time_seconds, metric_unique, dictionary
 
 
-# Function that delete the most popular symbol in the string
+# Function that removes the most frequently occurring character
 def delete_most_popular(string, check_string):
     most_popular = max(string, key=string.count)
     string = string.replace(most_popular, '')
