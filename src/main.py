@@ -12,7 +12,7 @@ from func_pass import beautiful_password_first, create_nickname
 
 
 # Add telegram token
-bot = telebot.TeleBot('6172414813:AAGLvVUX0JQfxqEcSkuy9S8TNvp31cEXs6M')
+bot = telebot.TeleBot('Put your token here')
 
 
 # A function that handles the /start command
