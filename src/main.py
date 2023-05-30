@@ -12,24 +12,24 @@ from func_pass import beautiful_password_first, create_nickname
 
 
 # Add telegram token
-bot = telebot.TeleBot('Put your token here')
+bot = telebot.TeleBot('6172414813:AAGLvVUX0JQfxqEcSkuy9S8TNvp31cEXs6M')
 
 
 # A function that handles the /start command
 @bot.message_handler(commands=["start"])
 def start(m, res=False):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-    markup.row('Пароль\n(легко запомнить)')
-    markup.row('Пароль для соц сетей', 'Обычный пароль')
+    markup.row('Легкий пароль')
+    markup.row('Пароль для соц сетей', 'Сложный пароль')
     markup.row('Проверить свой пароль')
     markup.row('Создать никнейм')
     bot.send_message(m.chat.id,
                      '\n\n*🔐 Напиши боту свой пароль и'
                      ' он проверит его на надежность*\\!\n'
                      '*Либо можешь сгенерировать уже готовый\\!*\n\n'
-                     '1️⃣ Легкозапоминающийся пароль\n'
+                     '1️⃣ Легкий пароль\n'
                      '\n2️⃣ Пароль для соц сетей\n'
-                     '\n3️⃣ Обычный пароль\n'
+                     '\n3️⃣ Сложный пароль\n'
                      '\n4️⃣ Создать никнейм',
                      reply_markup=markup, parse_mode='MarkdownV2')
 
@@ -60,7 +60,7 @@ def handle_text(message):
     check_string = string.ascii_lowercase + string.ascii_uppercase + \
         string.punctuation + string.digits
 
-    if message.text.strip() == 'Пароль\n(легко запомнить)':
+    if message.text.strip() == 'Легкий пароль':
         bot.send_message(message.chat.id,
                          f'{beautiful_password_first()}',)
     elif message.text.strip() == 'Пароль для соц сетей':
@@ -101,7 +101,7 @@ def handle_text(message):
         markup.row('Создать никнейм')
         bot.send_message(message.chat.id, '🏝 Ты в меню', reply_markup=markup)
 
-    elif message.text.strip() == 'Обычный пароль':
+    elif message.text.strip() == 'Сложный пароль':
         answer = strong_pass(False)
         bot.send_message(message.chat.id, '*'f'{answer}*',
                          parse_mode='MarkdownV2')
@@ -119,7 +119,7 @@ def handle_text(message):
                              '\\- Перепутана русская *A* и латинская\n'
                              '\\- Есть нестандартные символы\n\n'
                              '*P\\.S\\. Бот различает русский и '
-                             'атинский алфавит*',
+                             'латинский алфавит*',
                              parse_mode='MarkdownV2')
 
 
@@ -216,7 +216,7 @@ def get_pass(message: types.Message):   # Password verification function
         bit_final = '\nНадежность пароля 'f'{round(bit / 97 * 100)} %'
 
         if verdict != '' and bit < 97:
-            if dict_answer['length'] < 16 \
+            if dict_answer['length'] > 9 \
                     and (time // 3600 // 24 // 365) > 1 and unique > 0.5 \
                     and dict_answer['duplicates'][0] is False \
                     and dict_answer['duplicates'][1] is False \
@@ -255,11 +255,11 @@ def get_pass(message: types.Message):   # Password verification function
     if verdict_final[0] in ('✅'):
         # In-line keyboard
         inMurkup = types.InlineKeyboardMarkup(row_width=1)
-        inline_button = types.InlineKeyboardButton('👁 Сделать красивым',
+        inline_button = types.InlineKeyboardButton('👁 Сделай красиво',
                                                    callback_data=message.text)
         inMurkup.add(inline_button)
         bot.send_message(message.chat.id,
-                         'Я могу сделать твой пароль *красивее*\n' +
+                         '*Могу поработать над красотой пароля*\n' +
                          12 * '\t' + '*Жми сколько влезет\\!*',
                          parse_mode='MarkdownV2', reply_markup=inMurkup)
 
