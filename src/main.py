@@ -95,8 +95,8 @@ def handle_text(message):
 
     elif message.text.strip() == '🏠 Назад в меню':
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
-        markup.row('Пароль\n(легко запомнить)')
-        markup.row('Пароль для соц сетей', 'Обычный пароль')
+        markup.row('Легкий пароль')
+        markup.row('Пароль для соц сетей', 'Сложный пароль')
         markup.row('Проверить свой пароль')
         markup.row('Создать никнейм')
         bot.send_message(message.chat.id, '🏝 Ты в меню', reply_markup=markup)
