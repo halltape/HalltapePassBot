@@ -5,7 +5,8 @@ FROM python
 WORKDIR /app
 
 # Копируем файлы проекта из локального контекста сборки в контейнер
-COPY HalltapePassBot/src /app/
+COPY /src/ /app/
+COPY /text_files/ /app/text_files/
 
 # Копируем файл requirements.txt
 COPY requirements.txt /app/
