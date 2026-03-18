@@ -1,5 +1,7 @@
 import string
+import os
 import telebot
+from dotenv import load_dotenv
 
 
 from library import *
@@ -11,8 +13,13 @@ from checking_pass import check_pass, check_table_words
 from func_pass import beautiful_password_first, create_nickname
 
 
-# Add telegram token
-bot = telebot.TeleBot('Put your token here!')
+load_dotenv()
+
+telegram_token = os.getenv("TELEGRAM_TOKEN")
+if not telegram_token:
+    raise RuntimeError("TELEGRAM_TOKEN is not set")
+
+bot = telebot.TeleBot(telegram_token)
 
 
 # A function that handles the /start command
